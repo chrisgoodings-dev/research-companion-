@@ -2,13 +2,18 @@ import { esc } from './dom.js';
 
 /** Render one labelled form field. Every control gets a real <label>, a hint and an (initially hidden)
  *  error message wired up through aria-describedby (WCAG 1.3.1, 3.3.1, 3.3.2). */
-export function field({ id, label, hint = '', control = 'input', type = 'text', value = '', required = false, minlength, maxlength, rows = 4, autocomplete = 'off', counter = false }) {
+export function field({ id, label, hint = '', control = 'input', type = 'text', value = '', required = false, minlength, maxlength, rows = 4, autocomplete = 'off', counter = false, min, max, step, inputmode, enterkeyhint }) {
   const attrs = [
     `id="${id}"`, `name="${id}"`, `data-label="${esc(label)}"`, `aria-describedby="${id}-hint"`,
     required ? 'required' : '',
     minlength ? `minlength="${minlength}"` : '',
     maxlength ? `maxlength="${maxlength}"` : '',
     `autocomplete="${autocomplete}"`,
+    min !== undefined ? `min="${min}"` : '',
+    max !== undefined ? `max="${max}"` : '',
+    step !== undefined ? `step="${step}"` : '',
+    inputmode ? `inputmode="${inputmode}"` : '',
+    enterkeyhint ? `enterkeyhint="${enterkeyhint}"` : '',
   ].filter(Boolean).join(' ');
 
   const input = control === 'textarea'

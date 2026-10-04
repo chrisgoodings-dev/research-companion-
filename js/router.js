@@ -10,6 +10,12 @@ export function parseRoute(hash) {
   return { name: parts[0] || 'dashboard', params: parts.slice(1) };
 }
 
+/** Read "?q=ai&from=2020" from the hash (the part after the first "?"). */
+export function parseQuery(hash) {
+  const i = String(hash || '').indexOf('?');
+  return new URLSearchParams(i === -1 ? '' : String(hash).slice(i + 1));
+}
+
 export const parseHash = (hash) => parseRoute(hash).name;
 
 /** Only "#", "#/" and "#/name" are routes. Other fragments (such as the skip link's "#main") are left alone. */

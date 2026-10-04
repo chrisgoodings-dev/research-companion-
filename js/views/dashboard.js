@@ -29,12 +29,12 @@ export const dashboardRoute = {
           <li>Record evidence and relate it to a question.</li>
           <li>Review the <strong>Matrix</strong> to see where the evidence agrees or conflicts.</li>
         </ol>
-        <a class="btn btn--primary" href="#/projects">Go to Projects</a>
+        <a class="btn btn--primary" href="#/projects">Go to Projects</a> <a class="btn btn--secondary" href="#/discover">Search papers</a>
       </section>
       <section class="card" aria-labelledby="status-h">
         <h2 id="status-h">Build status</h2>
-        <p><span class="badge">Stage 3 of 12</span></p>
-        <p>Projects and research questions are saved in your browser (IndexedDB). Paper search comes next.</p>
+        <p><span class="badge">Stage 4 of 12</span></p>
+        <p>Projects, research questions and paper search (OpenAlex) are working. Saving papers to a project comes next.</p>
       </section>
     </div>`,
   async mount(outlet) {

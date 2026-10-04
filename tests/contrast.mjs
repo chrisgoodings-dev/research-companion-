@@ -37,6 +37,8 @@ const pairs = [
   ['Dark: error text on graphite-800', '#ff9aa9', '#1a2a2e', 4.5],
   ['Dark: danger button text on danger', '#0d1b1e', '#ff9aa9', 4.5],
   ['Toast: text on graphite-900', '#e2fbf8', '#0d1b1e', 4.5],
+  ['Light: open-access badge text on surface', '#166534', '#ffffff', 4.5],
+  ['Dark: open-access badge text on graphite-800', '#86efac', '#1a2a2e', 4.5],
   ['REJECTED: white on teal-500 (why teal-700 is used)', '#ffffff', '#14b8a6', 4.5],
   ['REJECTED: teal-500 text on canvas', '#14b8a6', '#f5f7fa', 4.5],
 ];

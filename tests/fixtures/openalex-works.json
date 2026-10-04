@@ -1,0 +1,188 @@
+{
+  "meta": {
+    "count": 1234,
+    "db_response_time_ms": 20,
+    "page": 1,
+    "per_page": 20
+  },
+  "results": [
+    {
+      "id": "https://openalex.org/W1000000001",
+      "doi": "https://doi.org/10.1145/3597503.3608128",
+      "title": "Productivity Assessment of Neural Code Completion",
+      "display_name": "Productivity Assessment of Neural Code Completion",
+      "publication_year": 2022,
+      "type": "article",
+      "cited_by_count": 214,
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A1",
+            "display_name": "Albert Ziegler"
+          }
+        },
+        {
+          "author": {
+            "id": "https://openalex.org/A2",
+            "display_name": "Eirini Kalliamvakou"
+          }
+        },
+        {
+          "author": {
+            "id": "https://openalex.org/A3",
+            "display_name": "Shawn Simister"
+          }
+        },
+        {
+          "author": {
+            "id": "https://openalex.org/A4",
+            "display_name": "Ganesh Sittampalam"
+          }
+        },
+        {
+          "author": {
+            "id": "https://openalex.org/A5",
+            "display_name": "Alice Li"
+          }
+        }
+      ],
+      "primary_location": {
+        "is_oa": true,
+        "landing_page_url": "https://doi.org/10.1145/3597503.3608128",
+        "pdf_url": "https://arxiv.org/pdf/2205.06537",
+        "source": {
+          "display_name": "Proceedings of the 6th ACM SIGPLAN International Symposium on Machine Programming",
+          "type": "conference"
+        }
+      },
+      "open_access": {
+        "is_oa": true,
+        "oa_status": "green",
+        "oa_url": "https://arxiv.org/pdf/2205.06537"
+      },
+      "abstract_inverted_index": {
+        "Neural": [
+          0
+        ],
+        "code": [
+          1,
+          8
+        ],
+        "completion": [
+          2,
+          12
+        ],
+        "tools": [
+          3
+        ],
+        "can": [
+          4
+        ],
+        "improve": [
+          5
+        ],
+        "developer": [
+          6
+        ],
+        "productivity;": [
+          7
+        ],
+        "acceptance": [
+          9
+        ],
+        "rate": [
+          10
+        ],
+        "predicts": [
+          11
+        ],
+        "perceived": [
+          13
+        ],
+        "productivity.": [
+          14
+        ]
+      }
+    },
+    {
+      "id": "https://openalex.org/W1000000002",
+      "doi": null,
+      "title": "Is <i>GitHub Copilot</i> a Substitute for Human Pair-programming?",
+      "display_name": "Is GitHub Copilot a Substitute for Human Pair-programming?",
+      "publication_year": 2023,
+      "type": "article",
+      "cited_by_count": 87,
+      "authorships": [
+        {
+          "author": {
+            "id": "https://openalex.org/A6",
+            "display_name": "Ranim Khojah"
+          }
+        },
+        {
+          "author": {
+            "id": "https://openalex.org/A7",
+            "display_name": "Mazen Mohamad"
+          }
+        },
+        {
+          "author": {
+            "id": "https://openalex.org/A8",
+            "display_name": "Eve <img src=x onerror=\"window.__xss=1\">"
+          }
+        }
+      ],
+      "primary_location": {
+        "is_oa": false,
+        "landing_page_url": "javascript:alert('xss')",
+        "pdf_url": null,
+        "source": {
+          "display_name": "Journal of Systems & Software",
+          "type": "journal"
+        }
+      },
+      "open_access": {
+        "is_oa": false,
+        "oa_status": "closed",
+        "oa_url": null
+      },
+      "abstract_inverted_index": null
+    },
+    {
+      "id": "https://openalex.org/W1000000003",
+      "doi": "https://doi.org/10.1000/XYZ.123",
+      "title": "A <script>alert(1)</script>Survey of Large Language Models for Code",
+      "display_name": "A Survey of Large Language Models for Code",
+      "publication_year": 2024,
+      "type": "review",
+      "cited_by_count": 0,
+      "authorships": null,
+      "primary_location": null,
+      "open_access": {
+        "is_oa": true,
+        "oa_status": "gold",
+        "oa_url": "https://example.org/paper.pdf"
+      },
+      "abstract_inverted_index": {
+        "A": [
+          0
+        ],
+        "<b>survey</b>": [
+          1
+        ]
+      }
+    },
+    {
+      "id": "https://openalex.org/W1000000004",
+      "doi": null,
+      "title": null,
+      "display_name": null,
+      "publication_year": 2021,
+      "authorships": [],
+      "primary_location": null,
+      "open_access": null,
+      "abstract_inverted_index": null
+    }
+  ],
+  "group_by": []
+}

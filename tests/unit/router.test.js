@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseHash, parseRoute, resolveRoute, isRouteHash } from '../../js/router.js';
+import { parseQuery, parseHash, parseRoute, resolveRoute, isRouteHash } from '../../js/router.js';
 
 // router.js imports the announcer, which only touches `document` when called, so it loads in Node.
 
@@ -37,4 +37,13 @@ test('resolveRoute does not match inherited object keys', () => {
   assert.equal(resolveRoute('#/constructor', routes).found, false);
   assert.equal(resolveRoute('#/__proto__', routes).found, false);
   assert.equal(resolveRoute('#/notFound', routes).found, false);
+});
+
+test('parseQuery reads the query string from a hash', () => {
+  const p = parseQuery('#/discover?q=ai%20code&from=2020&oa=1');
+  assert.equal(p.get('q'), 'ai code');
+  assert.equal(p.get('from'), '2020');
+  assert.equal(p.get('oa'), '1');
+  assert.equal(parseQuery('#/discover').get('q'), null);
+  assert.equal(parseQuery('').toString(), '');
 });

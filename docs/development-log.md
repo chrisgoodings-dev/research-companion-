@@ -1,5 +1,14 @@
 # Development Log
 
+## 2026-10-04: Stage 4 (Discover: OpenAlex search)
+- `js/api/openalex.js`: pure `buildSearchUrl`, `reconstructAbstract` (OpenAlex ships abstracts as an inverted index), `normaliseWork`, and `searchOpenAlex` with timeout, cancellation and typed errors (network / timeout / rate-limit / server / bad-response). Everything is normalised into one app-level Paper shape (`js/api/paper.js`) so Crossref (Stage 5) can plug in.
+- Discover form: `type="search"`, two `type="number"` year inputs (min/max/step), `<select>` for sort, checkbox for open access, grouped in a `<fieldset>` with a `<legend>`; cross-field rule (earliest <= latest year).
+- The whole search lives in the URL (`#/discover?q=...&from=...`), so Back/reload/shareable links work. Search updates the URL with `history.pushState` and runs in place, so the form is not re-rendered or focus lost.
+- States: idle, loading (`aria-busy`, announced), results, empty, error with specific messages and a Try again button. A newer search aborts and supersedes an older one.
+- Security: API data is untrusted. Titles have tags stripped, every value is HTML-escaped on render, and links are limited to http(s) (blocks `javascript:`). Verified by mutation testing: removing either protection makes the tests fail.
+- Bugs found by testing: (1) long unbroken strings overflowed a 320px screen (WCAG 1.4.10) -> `overflow-wrap: anywhere` on cards; (2) my own test server crashed on a missing file, which hid a failing check.
+- The live OpenAlex API is blocked in the build container, so tests use fixtures written from OpenAlex's documented schema. **To do: check live results once in a normal browser** and set `OPENALEX_MAILTO` in `js/config.js`.
+
 ## 2026-10-04: Stage 3 (IndexedDB, projects, research questions)
 - IndexedDB schema v1 created up front for all five planned stores (projects, researchQuestions, papers, projectPapers, evidenceNotes) with indexes, so later stages need no migration.
 - All data access goes through a repository (`js/db/repository.js`); views never touch IndexedDB. Deleting a project, or a question, cascades in a single transaction.

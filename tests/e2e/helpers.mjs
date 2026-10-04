@@ -13,9 +13,9 @@ export async function start() {
   const server = createServer(async (req, res) => {
     const path = normalize(decodeURIComponent(new URL(req.url, 'http://x').pathname)).replace(/^(\.\.[/\\])+/, '');
     const name = path === '/' ? '/index.html' : path;
-    try {
-      res.writeHead(200, { 'content-type': types[extname(name)] ?? 'application/octet-stream' }).end(await readFile(join(root, name)));
-    } catch { res.writeHead(404).end('not found'); }
+    let file;
+    try { file = await readFile(join(root, name)); } catch { res.writeHead(404).end('not found'); return; }
+    res.writeHead(200, { 'content-type': types[extname(name)] ?? 'application/octet-stream' }).end(file);
   }).listen(0);
   const base = `http://localhost:${server.address().port}/`;
   const shots = join(root, 'docs/testing/screenshots');

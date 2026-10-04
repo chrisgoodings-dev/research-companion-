@@ -1,11 +1,12 @@
 import { dashboardRoute } from './dashboard.js';
 import { projectsRoute } from './projects.js';
+import { discoverRoute } from './discover.js';
 import { placeholderView } from './placeholder.js';
 
 export const routes = {
   dashboard: dashboardRoute,
   projects: projectsRoute,
-  discover: { title: 'Discover', render: () => placeholderView({ title: 'Discover', summary: 'Search scholarly APIs for papers.', stage: 'Stage 4' }) },
+  discover: discoverRoute,
   library: { title: 'Library', render: () => placeholderView({ title: 'Library', summary: 'Papers you have saved to your projects.', stage: 'Stage 6' }) },
   evidence: { title: 'Evidence', render: () => placeholderView({ title: 'Evidence', summary: 'Evidence records linked to research questions.', stage: 'Stage 7' }) },
   matrix: { title: 'Matrix', render: () => placeholderView({ title: 'Evidence matrix', summary: 'Papers against research questions.', stage: 'Stage 8' }) },
