@@ -4,7 +4,7 @@ A research evidence workspace built for the MSc Web Technologies module (55-7097
 Discover papers through scholarly APIs, save them to a project, capture structured evidence
 (kept separate from your own interpretation) and relate it to research questions in an evidence matrix.
 
-**Live site:** _add the public URL here once deployed; see `docs/deployment.md` (GitHub Pages workflow included)._
+**Live site:** https://chrisgoodings-dev.github.io/research-companion-/
 
 ## Run locally
 ```bash

@@ -34,7 +34,7 @@ Marking descriptors reward: a clear **why this element**, **alternatives and the
 
 **Honest limits to mention.** Data is per browser and per device (no sync); search depends on two third-party APIs; the live APIs could not be reached from the build environment, so search was tested against recorded sample responses (check once on the live site: `docs/deployment.md`).
 
-**Public URL.** `<add after deploying: see docs/deployment.md>`
+**Public URL.** https://chrisgoodings-dev.github.io/research-companion-/  (opens on the dashboard; also reachable as `https://chrisgoodings-dev.github.io/research-companion-/#/dashboard`)
 
 ---
 

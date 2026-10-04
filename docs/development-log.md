@@ -1,5 +1,8 @@
 # Development Log
 
+## 2026-10-04: Deployed
+- Published with GitHub Pages: https://chrisgoodings-dev.github.io/research-companion-/ . First live search reported working by the author; record the exact query, sources and what appeared in `docs/testing/` when you complete the acceptance checklist in `docs/deployment.md`.
+
 ## 2026-10-04: Stage 12 (Deployment configuration and evidence pack)
 - **Deployable under a sub-path**: `tests/e2e/subpath.mjs` serves the site only under `/research-companion-/` (everything else 404s) and walks every page; any absolute `/js/...` URL would fail. It passes: the site works at a root or at `https://<user>.github.io/<repo>/`.
 - **GitHub Pages workflow** (`.github/workflows/pages.yml`): installs, runs unit tests, contrast checks and every browser suite (including HTML validation and the 90-audit sweep), and deploys `index.html`, `css/` and `js/` only if everything passed; pull requests run the tests without deploying. `docs/deployment.md` has the steps for GitHub Pages and Cloudflare Pages, the pre-deploy checklist (contact email, repository visibility) and a post-deploy acceptance checklist including a real API search, which the automated tests cannot prove.
