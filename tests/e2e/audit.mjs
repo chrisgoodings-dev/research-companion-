@@ -129,7 +129,8 @@ async function keyboardPass(page) {
 
 const TEXT_SPACING = '* { line-height: 1.5 !important; letter-spacing: 0.12em !important; word-spacing: 0.16em !important; } p { margin-bottom: 2em !important; }';
 async function textSpacing(page) {
-  const handle = await page.addStyleTag({ content: TEXT_SPACING });
+  // A constructable stylesheet: allowed under the page's Content-Security-Policy, unlike injecting a <style> element.
+  await page.evaluate((css) => { const sheet = new CSSStyleSheet(); sheet.replaceSync(css); window.__spacing = sheet; document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet]; }, TEXT_SPACING);
   const result = await page.evaluate(() => {
     const clipped = [];
     for (const el of document.querySelectorAll('main *, .nav *, .topbar *')) {
@@ -141,7 +142,7 @@ async function textSpacing(page) {
     }
     return { sideways: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1, clipped: [...new Set(clipped)] };
   });
-  await handle.evaluate((el) => el.remove());
+  await page.evaluate(() => { document.adoptedStyleSheets = document.adoptedStyleSheets.filter((x) => x !== window.__spacing); });
   return result;
 }
 

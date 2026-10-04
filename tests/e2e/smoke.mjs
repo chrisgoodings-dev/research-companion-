@@ -80,7 +80,7 @@ check(await m.locator('#more-menu').evaluate((d) => !d.open), 'mobile: menu clos
 const zctx = await browser.newContext({ viewport: { width: 640, height: 800 } });
 const z = await zctx.newPage();
 await z.goto(base);
-await z.addStyleTag({ content: 'html{font-size:200%}' });
+await z.evaluate(() => { document.documentElement.style.fontSize = '200%'; }); // CSSOM change: allowed under the page's CSP, unlike injecting a <style> tag
 check(await z.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), '200% font size at 640px: no horizontal scroll');
 
 await finish();

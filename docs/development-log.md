@@ -1,5 +1,12 @@
 # Development Log
 
+## 2026-10-05: Security hardening (Content-Security-Policy)
+- Added a **Content-Security-Policy** as a `<meta http-equiv>` tag (GitHub Pages cannot send HTTP headers): `default-src 'none'`; scripts from this site only plus one SHA-256-hashed inline snippet (the pre-paint theme switch); styles and images from this site (images also `data:` for the favicon); network requests only to this site, `api.openalex.org` and `api.crossref.org`; no plugins, no `<base>`, no frames. No `'unsafe-inline'` or `'unsafe-eval'`.
+- Purpose: **defence in depth**. Escaping and URL checks are the primary protection against hostile paper metadata or backup files; the policy means that if markup ever slipped through, injected scripts, inline event handlers and requests to any other server are still blocked.
+- `tests/e2e/security.mjs`: asserts the directives; uses every page, dialog, theme toggle, a blob download and a file upload with **zero violations**; then deliberately injects an inline handler, an inline `<script>`, an external script, an inline style and a `fetch` to another origin and shows each is blocked and reported.
+- Side effect found: tests that injected a `<style>` tag were blocked by the policy (an injected style tag gave `word-spacing: 0px`). The text-spacing audit now uses a constructable stylesheet and the 200% font test uses a CSSOM change, both allowed under the policy and verified to apply (`letter-spacing: 1.92px`), so the audit did not silently stop testing anything.
+- All 500 browser checks, 113 unit tests, the 90-page audit and HTML validation pass with the policy enforced.
+
 ## 2026-10-04: Deployed
 - Published with GitHub Pages: https://chrisgoodings-dev.github.io/research-companion-/ . First live search reported working by the author; record the exact query, sources and what appeared in `docs/testing/` when you complete the acceptance checklist in `docs/deployment.md`.
 
