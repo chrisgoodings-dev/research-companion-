@@ -62,7 +62,7 @@ async function mountList(outlet, repo) {
   const options = (map, selected) => Object.entries(map).map(([v, label]) => `<option value="${v}"${v === selected ? ' selected' : ''}>${esc(label)}</option>`).join('');
 
   body.innerHTML = `
-    <form id="lib-filters" class="card form" role="search" aria-label="Filter saved papers">
+    <div id="lib-filters" class="card form" role="search" aria-label="Filter saved papers">
       ${field({ id: 'lib-q', label: 'Filter by keyword', hint: 'Matches title, authors, venue, year or DOI.', type: 'search', value: state.q, maxlength: 200, optionalTag: false })}
       <div class="filters__grid">
         <div class="field"><label class="field__label" for="lib-project">Project</label>
@@ -72,11 +72,11 @@ async function mountList(outlet, repo) {
         <div class="field"><label class="field__label" for="lib-sort">Sort by</label>
           <select id="lib-sort" name="lib-sort">${options(LIB_SORTS, state.sort)}</select></div>
       </div>
-    </form>
+    </div>
     <p id="lib-count" class="results__summary" role="status"></p>
     <div id="lib-results"></div>`;
 
-  const form = body.querySelector('#lib-filters');
+  const form = body.querySelector('#lib-filters'); // a search container, not a <form>: filtering is live, nothing is submitted
   const count = body.querySelector('#lib-count');
   const results = body.querySelector('#lib-results');
   let timer;
@@ -122,7 +122,6 @@ async function mountList(outlet, repo) {
     history.replaceState(null, '', `#/library${p.size ? `?${p}` : ''}`);
   }
 
-  form.addEventListener('submit', (e) => e.preventDefault()); // Enter in the keyword box must not reload the page
   form.addEventListener('input', () => {
     state.q = form.querySelector('#lib-q').value;
     state.project = form.querySelector('#lib-project').value;

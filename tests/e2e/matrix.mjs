@@ -77,7 +77,7 @@ await page.screenshot({ path: join(shots, 'matrix-desktop.png'), fullPage: true 
 await page.focus('.nav__link[href="#/matrix"]');
 for (let i = 0; i < 40; i += 1) { await page.keyboard.press('Tab'); if (await page.evaluate(() => document.activeElement.matches('.table-scroll'))) break; }
 check(await page.evaluate(() => document.activeElement.matches('.table-scroll')), 'the scrollable table region is reachable by keyboard');
-check((await page.getAttribute('.table-scroll', 'role')) === 'region' && (await page.getAttribute('.table-scroll', 'aria-labelledby')) === 'matrix-cap', 'region is named by the caption');
+check((await page.getByRole('region', { name: /Evidence matrix for/ }).count()) === 1 && (await page.getAttribute('.table-scroll', 'aria-labelledby')) === 'matrix-cap', 'the scroll area is a named region (a <section> labelled by the caption)');
 await page.keyboard.press('Tab');
 check(await page.evaluate(() => document.activeElement.closest('th')?.scope === 'row' || document.activeElement.matches('tbody th a')), 'Tab then reaches the first paper link');
 
@@ -104,6 +104,8 @@ check((await page.locator('#matrix-project option').count()) === 3, 'project sel
 await page.selectOption('#matrix-project', ids.B);
 await page.waitForSelector('.empty-state');
 check((await page.textContent('.empty-state')).includes('needs research questions') && page.url().includes(`project=${ids.B}`), 'project without questions: explains, URL updated');
+await page.waitForFunction(() => document.querySelector('#announcer').textContent === 'Evidence matrix for Needs questions');
+check(true, 'choosing another project is announced to screen readers');
 await axe(page, 'matrix (needs questions)');
 await page.selectOption('#matrix-project', ids.C);
 await page.waitForFunction(() => document.querySelector('.empty-state h2')?.textContent.includes('saved papers'));

@@ -10,6 +10,39 @@ const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
 page.on('console', (m) => { if (m.type() === 'error' && !m.text().includes('Failed to load resource')) errors.push(m.text()); });
 
+// ---------- code splitting: only the page you open is downloaded ----------
+const lazyCtx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+const lp = await lazyCtx.newPage();
+const fetched = [];
+lp.on('request', (r) => { const u = new URL(r.url()); if (u.pathname.endsWith('.js')) fetched.push(u.pathname); });
+await lp.goto(`${base}#/dashboard`);
+await lp.waitForSelector('[data-stat=projects]');
+const has = (name) => fetched.some((f) => f.endsWith(name));
+check(has('/js/views/dashboard.js') && !has('/js/views/discover.js') && !has('/js/views/backup.js') && !has('/js/api/openalex.js') && !has('/js/views/matrix.js'), `first load fetches only the dashboard's code (${fetched.length} scripts, none of Discover, Matrix or Backup)`);
+await lp.click('.nav__link[href="#/matrix"]');
+await lp.waitForSelector('#matrix-form, .empty-state');
+check(has('/js/views/matrix.js'), 'visiting the Matrix then fetches its code');
+const before = fetched.length;
+await lp.click('.nav__link[href="#/dashboard"]');
+await lp.waitForSelector('[data-stat=projects]');
+await lp.click('.nav__link[href="#/matrix"]');
+await lp.waitForSelector('#matrix-form, .empty-state');
+check(fetched.length === before, 'revisiting a page does not download its code again');
+
+// a failed code download must be explained and must recover on retry
+await lp.route('**/js/views/progress.js', (r) => r.abort('failed'));
+await lp.click('.nav__link[href="#/progress"]');
+await lp.waitForFunction(() => document.querySelector('h1')?.textContent === 'Something went wrong');
+check((await lp.textContent('main [role=alert]')).includes('could not be loaded'), 'a failed page-code download is explained, with advice');
+await axe(lp, 'page could not be loaded');
+await lp.unroute('**/js/views/progress.js');
+await lp.click('.nav__link[href="#/dashboard"]');
+await lp.waitForSelector('[data-stat=projects]');
+await lp.click('.nav__link[href="#/progress"]');
+await lp.waitForFunction(() => document.querySelector('h1')?.textContent === 'Progress');
+check(true, 'the page loads normally on retry (the failure was not cached)');
+await lazyCtx.close();
+
 // ---------- dashboard: finished-product wording ----------
 await page.goto(`${base}#/dashboard`);
 await page.waitForFunction(() => document.querySelector('[data-stat=projects]').textContent !== '–');
@@ -69,6 +102,8 @@ await page.screenshot({ path: join(shots, 'progress-desktop.png'), fullPage: tru
 await page.selectOption('#progress-project', ids.B);
 await page.waitForFunction(() => document.querySelector('#next-h + ul')?.textContent.includes('Save some papers'));
 check(page.url().includes(`project=${ids.B}`) && (await page.textContent('#next-h + ul')).includes('Add at least one research question'), 'an empty project gets first-steps guidance and the URL updates');
+await page.waitForFunction(() => document.querySelector('#announcer').textContent === 'Progress for Empty project');
+check(true, 'choosing another project is announced to screen readers');
 await axe(page, 'progress (empty project)');
 
 // ---------- not found ----------
@@ -129,7 +164,7 @@ check((await b.textContent('h1')) === 'Dashboard' && (await b.textContent('[role
 check((await b.textContent('[role=alert]')).includes('IndexedDB is not available'), 'and says why');
 await axe(b, 'dashboard with storage blocked');
 await b.goto(`${base}#/projects`);
-await b.waitForSelector('[role=alert]');
+await b.waitForFunction(() => document.querySelector('h1')?.textContent === 'Projects' && document.querySelector('main [role=alert]'));
 check((await b.textContent('h1')) === 'Projects', 'storage blocked: Projects explains instead of crashing');
 await b.goto(`${base}#/discover?q=copilot`);
 await b.waitForSelector('.paper');

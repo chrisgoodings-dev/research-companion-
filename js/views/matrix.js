@@ -4,6 +4,7 @@ import { RELATIONSHIPS } from '../validation.js';
 import { formatAuthors } from '../api/paper.js';
 import { parseQuery } from '../router.js';
 import { esc } from '../ui/dom.js';
+import { announce } from '../ui/announcer.js';
 import { relBadge } from '../ui/evidenceUi.js';
 import { REL_LABEL, REL_HELP, plural } from '../ui/format.js';
 
@@ -38,17 +39,16 @@ export const matrixRoute = {
     let projectId = projects.some((p) => p.id === wanted) ? wanted : projects[0].id;
 
     body.innerHTML = `
-      <form id="matrix-form" class="card form" aria-label="Choose a project">
+      <div id="matrix-form" class="card form" role="group" aria-label="Choose a project">
         <div class="field"><label class="field__label" for="matrix-project">Project</label>
           <select id="matrix-project" name="matrix-project">${projects.map((p) => `<option value="${esc(p.id)}"${p.id === projectId ? ' selected' : ''}>${esc(p.name)}</option>`).join('')}</select></div>
-      </form>
+      </div>
       <div id="matrix-out"></div>`;
     const out = body.querySelector('#matrix-out');
-    body.querySelector('#matrix-form').addEventListener('submit', (e) => e.preventDefault());
     body.querySelector('#matrix-project').addEventListener('change', (e) => {
       projectId = e.target.value;
       history.replaceState(null, '', `#/matrix?project=${projectId}`);
-      draw();
+      draw().then(() => announce(`Evidence matrix for ${projects.find((p) => p.id === projectId).name}`));
     });
 
     async function draw() {
@@ -94,7 +94,7 @@ export const matrixRoute = {
 
         ${notes.length ? `<section class="card" aria-labelledby="notes-h"><h2 id="notes-h">What stands out</h2><ul class="steps">${notes.map((n) => `<li>${n}</li>`).join('')}</ul></section>` : ''}
 
-        <div class="table-scroll" role="region" aria-labelledby="matrix-cap" tabindex="0">
+        <section class="table-scroll" aria-labelledby="matrix-cap" tabindex="0">
           <table class="matrix">
             <caption id="matrix-cap">Evidence matrix for “${esc(project.name)}”: how each paper’s evidence relates to each research question</caption>
             <thead><tr><th scope="col" class="matrix__corner">Paper</th>${m.columns.map((c) => `<th scope="col">${esc(c.label)}<span class="visually-hidden">: ${esc(c.question.text)}</span></th>`).join('')}</tr></thead>
@@ -104,7 +104,7 @@ export const matrixRoute = {
                 ${m.columns.map((col, i) => cell(row, col, i)).join('')}</tr>`).join('')}</tbody>
             <tfoot><tr><th scope="row">All papers</th>${m.summary.map((s, i) => summaryCell(s, m.columns[i])).join('')}</tr></tfoot>
           </table>
-        </div>
+        </section>
 
         <section class="card key" aria-labelledby="key-h">
           <h2 id="key-h">Key</h2>

@@ -29,7 +29,8 @@ for (const theme of ['light', 'dark']) {
       check((await page.getAttribute(`.nav__link[href="#/${r}"]`, 'aria-current')) === 'page', `[desktop] aria-current on ${r}`);
     }
     await page.goto(`${base}#/nope`);
-    check((await page.textContent('h1')) === 'Page not found', 'unknown route shows not-found page');
+    await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Page not found'); // routes load their code on demand, so wait for the page
+check(true, 'unknown route shows not-found page');
     await axe(page, 'desktop light not-found');
 
     // Keyboard: first Tab reveals the skip link; activating it focuses <main>.

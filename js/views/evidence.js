@@ -60,7 +60,7 @@ export const evidenceRoute = {
     const select = (id, label, options) => `<div class="field"><label class="field__label" for="${id}">${label}</label><select id="${id}" name="${id}">${options}</select></div>`;
 
     body.innerHTML = `
-      <form id="ev-filters" class="card form" role="search" aria-label="Filter evidence">
+      <div id="ev-filters" class="card form" role="search" aria-label="Filter evidence">
         ${field({ id: 'ef-q', label: 'Filter by keyword', hint: 'Matches the evidence, your interpretation, location, tags and paper title.', type: 'search', value: state.q, maxlength: 200, optionalTag: false })}
         <div class="filters__grid">
           ${select('ef-project', 'Project', `<option value="all">All projects</option>${projects.map((p) => `<option value="${esc(p.id)}"${p.id === state.project ? ' selected' : ''}>${esc(p.name)}</option>`).join('')}`)}
@@ -69,7 +69,7 @@ export const evidenceRoute = {
           ${select('ef-rel', 'Relationship', `<option value="any">Any relationship</option>${RELATIONSHIPS.map((r) => `<option value="${r}"${r === state.relationship ? ' selected' : ''}>${REL_LABEL[r]}</option>`).join('')}`)}
           ${select('ef-tag', 'Tag', `<option value="any">Any tag</option>${tags.map((t) => `<option value="${esc(t)}"${t === state.tag ? ' selected' : ''}>${esc(t)}</option>`).join('')}`)}
         </div>
-      </form>
+      </div>
       <p id="ef-count" class="results__summary" role="status"></p>
       <p id="ef-breakdown" class="rel-counts"></p>
       <div id="ef-results"></div>`;
@@ -125,7 +125,6 @@ export const evidenceRoute = {
       history.replaceState(null, '', `#/evidence${p.size ? `?${p}` : ''}`);
     }
 
-    form.addEventListener('submit', (e) => e.preventDefault());
     form.addEventListener('input', (e) => {
       state.q = form.querySelector('#ef-q').value;
       const projectChanged = state.project !== form.querySelector('#ef-project').value;

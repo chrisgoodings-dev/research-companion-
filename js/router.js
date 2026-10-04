@@ -40,12 +40,21 @@ export function startRouter({ routes, outlet }) {
     const isFirst = first;
     first = false;
     const token = ++navigation;
-    const { name, params, route, found } = resolveRoute(location.hash, routes);
+    const { name, params, route: entry, found } = resolveRoute(location.hash, routes);
     const current = () => token === navigation;
 
+    let route = entry;
     let html;
-    try { html = await route.render(params); }
-    catch (err) { console.error(err); html = `<h1>Something went wrong</h1><p role="alert">${esc(err.message)}</p>`; }
+    try {
+      if (entry.load) { route = entry.loaded ??= await entry.load(entry.failures ?? 0); }   // lazy route: fetch its code once, then reuse it
+      html = await route.render(params);
+    }
+    catch (err) {
+      console.error(err);
+      route = { title: 'Something went wrong' };
+      if (entry.load) { entry.loaded = undefined; entry.failures = (entry.failures ?? 0) + 1; } // the next visit retries with a fresh URL
+      html = `<h1>Something went wrong</h1><p role="alert">This page could not be loaded: ${esc(err.message)}. Check your connection and reload.</p>`;
+    }
     if (!current()) return;
 
     outlet.innerHTML = html;

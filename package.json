@@ -7,12 +7,15 @@
   "scripts": {
     "start": "npx http-server . -p 8080 -c-1",
     "test": "node --test \"tests/unit/**/*.test.js\"",
-    "test:e2e": "node tests/e2e/smoke.mjs && node tests/e2e/projects.mjs && node tests/e2e/discover.mjs && node tests/e2e/save.mjs && node tests/e2e/library.mjs && node tests/e2e/evidence.mjs && node tests/e2e/matrix.mjs && node tests/e2e/backup.mjs && node tests/e2e/polish.mjs",
-    "contrast": "node tests/contrast.mjs"
+    "test:e2e": "node tests/e2e/smoke.mjs && node tests/e2e/projects.mjs && node tests/e2e/discover.mjs && node tests/e2e/save.mjs && node tests/e2e/library.mjs && node tests/e2e/evidence.mjs && node tests/e2e/matrix.mjs && node tests/e2e/backup.mjs && node tests/e2e/polish.mjs && node tests/e2e/validate-html.mjs && node tests/e2e/audit.mjs",
+    "contrast": "node tests/contrast.mjs",
+    "audit": "node tests/e2e/audit.mjs",
+    "validate": "node tests/e2e/validate-html.mjs"
   },
   "devDependencies": {
     "axe-core": "^4.13.0",
     "fake-indexeddb": "^6.2.5",
+    "html-validate": "^11.16.2",
     "playwright-core": "^1.56.1"
   }
 }

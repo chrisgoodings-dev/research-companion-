@@ -11,18 +11,32 @@
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
-  <link rel="stylesheet" href="css/print.css">
+  <link rel="stylesheet" href="css/print.css" media="print">
   <script>
     /* Apply a saved theme before first paint to avoid a flash. */
     try { var t = localStorage.getItem('seh-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
   </script>
+  <link rel="modulepreload" href="js/main.js">
+  <link rel="modulepreload" href="js/router.js">
+  <link rel="modulepreload" href="js/ui/announcer.js">
+  <link rel="modulepreload" href="js/ui/dom.js">
+  <link rel="modulepreload" href="js/ui/theme.js">
+  <link rel="modulepreload" href="js/views/index.js">
+  <link rel="modulepreload" href="js/views/dashboard.js">
+  <link rel="modulepreload" href="js/db/index.js">
+  <link rel="modulepreload" href="js/db/db.js">
+  <link rel="modulepreload" href="js/db/repository.js">
+  <link rel="modulepreload" href="js/validation.js">
+  <link rel="modulepreload" href="js/api/paper.js">
+  <link rel="modulepreload" href="js/ui/download.js">
+  <link rel="modulepreload" href="js/ui/format.js">
   <script type="module" src="js/main.js"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to main content</a>
 
   <div class="app">
-    <header class="topbar" role="banner">
+    <header class="topbar">
       <a class="brand" href="#/dashboard">
         <span class="brand__mark" aria-hidden="true">SE</span>
         <span class="brand__name">Research Hub</span>
@@ -67,8 +81,8 @@
 
   <dialog id="confirm-dialog" class="sheet" aria-labelledby="confirm-title" aria-describedby="confirm-body">
     <form method="dialog">
-      <h2 id="confirm-title" class="sheet__title"></h2>
-      <p id="confirm-body"></p>
+      <h2 id="confirm-title" class="sheet__title">Are you sure?</h2>
+      <p id="confirm-body">This cannot be undone.</p>
       <div class="actions">
         <button type="submit" value="cancel" class="btn btn--secondary">Cancel</button>
         <button type="submit" value="confirm" class="btn btn--danger" id="confirm-ok">Delete</button>

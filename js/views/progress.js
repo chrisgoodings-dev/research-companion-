@@ -2,6 +2,7 @@ import { getRepo } from '../db/index.js';
 import { buildProgress } from '../progress.js';
 import { parseQuery } from '../router.js';
 import { esc } from '../ui/dom.js';
+import { announce } from '../ui/announcer.js';
 import { REL_LABEL, plural } from '../ui/format.js';
 import { RELATIONSHIPS } from '../validation.js';
 import { describeCounts } from '../matrix.js';
@@ -31,14 +32,13 @@ export const progressRoute = {
     let projectId = projects.some((p) => p.id === wanted) ? wanted : projects[0].id;
 
     body.innerHTML = `
-      <form id="progress-form" class="card form" aria-label="Choose a project">
+      <div id="progress-form" class="card form" role="group" aria-label="Choose a project">
         <div class="field"><label class="field__label" for="progress-project">Project</label>
           <select id="progress-project">${projects.map((p) => `<option value="${esc(p.id)}"${p.id === projectId ? ' selected' : ''}>${esc(p.name)}</option>`).join('')}</select></div>
-      </form>
+      </div>
       <div id="progress-out"></div>`;
     const out = body.querySelector('#progress-out');
-    body.querySelector('#progress-form').addEventListener('submit', (e) => e.preventDefault());
-    body.querySelector('#progress-project').addEventListener('change', (e) => { projectId = e.target.value; history.replaceState(null, '', `#/progress?project=${projectId}`); draw(); });
+    body.querySelector('#progress-project').addEventListener('change', (e) => { projectId = e.target.value; history.replaceState(null, '', `#/progress?project=${projectId}`); draw().then(() => announce(`Progress for ${projects.find((p) => p.id === projectId).name}`)); });
 
     async function draw() {
       const [questions, papers, evidence] = await Promise.all([repo.questions.listByProject(projectId), repo.papers.listByProject(projectId), repo.evidence.listByProject(projectId)]);

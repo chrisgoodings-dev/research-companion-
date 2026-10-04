@@ -11,7 +11,9 @@ Discover papers through scholarly APIs, save them to a project, capture structur
 npm install
 npm start            # http://localhost:8080 (static, no build step)
 npm test             # unit tests (Node test runner)
-npm run test:e2e     # browser smoke test + axe-core accessibility scan + screenshots
+npm run test:e2e     # all browser suites, HTML validation and the whole-app audit (a few minutes)
+npm run audit        # 90 page audits: axe-core, keyboard-only pass, text spacing; writes docs/testing/accessibility-audit.md
+npm run validate     # HTML validation of every rendered route; writes docs/testing/html-validation.md
 npm run contrast     # WCAG contrast ratios for the design tokens
 ```
 

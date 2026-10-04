@@ -314,3 +314,17 @@ code { padding: 0.1rem 0.4rem; border-radius: 0.3rem; background: var(--surface-
 /* spacing: filter/picker cards sit apart from what follows; sub-headings inside cards get air */
 #progress-form, #matrix-form, #ev-filters, #lib-filters { margin-bottom: var(--space-4); }
 .card > h3:not(:first-child) { margin-top: var(--space-4); }
+
+/* High-contrast / forced-colours mode: use system colours so nothing depends on our palette. */
+@media (forced-colors: active) {
+  .tabs__tab[aria-selected="true"] { border-bottom-color: Highlight; color: HighlightText; background: Highlight; }
+  .rel, .badge, .chip, .matrix__conflict { border: 2px solid CanvasText; }
+  .btn { border: 2px solid ButtonText; }
+  .btn--primary { background: ButtonFace; color: ButtonText; }
+  .ev__block { border-left-color: CanvasText; }
+  .ev__block--mine { border-left-color: Highlight; }
+  .nav__link[aria-current="page"] { outline: 2px solid Highlight; }
+  .skip-link { border: 2px solid CanvasText; }
+  :focus-visible { outline: 3px solid Highlight; }
+  progress { forced-color-adjust: auto; }
+}
