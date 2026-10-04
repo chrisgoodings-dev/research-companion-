@@ -1,4 +1,4 @@
-import { OPENALEX_MAILTO } from '../config.js';
+import { CONTACT_EMAIL } from '../config.js';
 import { ApiError } from './errors.js';
 import { stripTags, normaliseDoi, safeUrl } from './paper.js';
 
@@ -18,7 +18,7 @@ const SELECT = ['id', 'doi', 'title', 'display_name', 'publication_year', 'type'
 const toYear = (v) => { const n = Number.parseInt(v, 10); return Number.isInteger(n) ? n : null; };
 
 /** Build the request URL. Pure, so the exact query sent to the API is unit-tested. */
-export function buildSearchUrl({ q, from, to, oa = false, sort = 'relevance', page = 1 }, { mailto = OPENALEX_MAILTO } = {}) {
+export function buildSearchUrl({ q, from, to, oa = false, sort = 'relevance', page = 1 }, { mailto = CONTACT_EMAIL } = {}) {
   const filters = [];
   const f = toYear(from);
   const t = toYear(to);
@@ -78,6 +78,7 @@ export function normaliseWork(work) {
     citedBy: Number.isInteger(work.cited_by_count) ? work.cited_by_count : 0,
     type: work.type ?? '',
     source: 'openalex',
+    sources: ['openalex'],
     sourceId,
   };
 }

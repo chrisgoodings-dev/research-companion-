@@ -1,5 +1,14 @@
 # Development Log
 
+## 2026-10-04: Stage 5 (Crossref, merge by DOI, save to project)
+- Second source: `js/api/crossref.js`, normalised into the same Paper shape as OpenAlex. Crossref abstracts are JATS XML, so tags become spaces (otherwise "Abstract" glued onto the first word: caught by a unit test), entities are decoded, and the "Abstract" label is dropped.
+- `js/api/merge.js`: de-duplicates by DOI (fallback: normalised title + year). The preferred source wins field conflicts; gaps are filled from the other (for example OpenAlex's open-access flag plus Crossref's longer abstract). Relevance sort interleaves by rank; newest / most-cited re-sort the merged page.
+- `js/api/search.js` queries both in parallel. One source failing gives partial results plus a visible notice; a failure that would look like "no results" is reported as an error instead. Crossref has no open-access flag, so it is skipped (with a notice) when "Open access only" is on.
+- Form additions: a "Sources" checkbox group (`name="d-src"` with several values, read with `FormData.getAll`) with a "choose at least one" rule.
+- Saving: papers are stored once and linked to projects (`projectPapers`, id `projectId:paperId`, so duplicates are impossible). Native `<dialog>` project picker, last-used project remembered in localStorage. Removing a paper deletes only that project's evidence about it; papers nothing references are pruned. Every paper passes a field whitelist (`validatePaper`) before it reaches the database, which will also protect JSON import.
+- Accessibility: the save button's accessible name includes the paper title; saved state is text ("Saved to: ..."), not colour; focus returns sensibly after cancel/save/remove.
+- Test lesson: stale toasts from earlier steps made a `.first()` assertion look at the wrong element. Assertions now match on text.
+
 ## 2026-10-04: Stage 4 (Discover: OpenAlex search)
 - `js/api/openalex.js`: pure `buildSearchUrl`, `reconstructAbstract` (OpenAlex ships abstracts as an inverted index), `normaliseWork`, and `searchOpenAlex` with timeout, cancellation and typed errors (network / timeout / rate-limit / server / bad-response). Everything is normalised into one app-level Paper shape (`js/api/paper.js`) so Crossref (Stage 5) can plug in.
 - Discover form: `type="search"`, two `type="number"` year inputs (min/max/step), `<select>` for sort, checkbox for open access, grouped in a `<fieldset>` with a `<legend>`; cross-field rule (earliest <= latest year).

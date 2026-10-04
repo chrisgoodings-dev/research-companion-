@@ -7,6 +7,30 @@ export function stripTags(value) {
   return String(value ?? '').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
 }
 
+const ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' };
+
+/** Decode the few entities Crossref leaves in its JATS/XML strings. Done AFTER tag stripping and the
+ *  result is still escaped when rendered, so this can never create live markup. */
+export function decodeEntities(value) {
+  return String(value ?? '').replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (m, e) => {
+    if (e[0] === '#') {
+      const code = e[1].toLowerCase() === 'x' ? Number.parseInt(e.slice(2), 16) : Number.parseInt(e.slice(1), 10);
+      return Number.isInteger(code) && code > 0 && code < 0x110000 ? String.fromCodePoint(code) : m;
+    }
+    return ENTITIES[e.toLowerCase()] ?? m;
+  });
+}
+
+/** Crossref abstracts are JATS XML ("<jats:title>Abstract</jats:title><jats:p>…</jats:p>"): tags become
+ *  spaces (so blocks do not run together), then the repeated "Abstract" label is dropped. */
+export function cleanAbstract(value) {
+  const text = decodeEntities(String(value ?? '').replace(/<[^>]*>/g, ' '))
+    .replace(/\s+/g, ' ')
+    .replace(/\s+([.,;:!?)])/g, '$1')
+    .trim();
+  return text.replace(/^(abstract\s*[:.\-–—]?\s*)+/i, '').trim();
+}
+
 /** "https://doi.org/10.1000/ABC" -> "10.1000/abc". Returns '' if it does not look like a DOI. */
 export function normaliseDoi(value) {
   const doi = String(value ?? '').trim().replace(/^https?:\/\/(dx\.)?doi\.org\//i, '').replace(/^doi:/i, '').toLowerCase();

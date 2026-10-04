@@ -17,7 +17,7 @@ npm run contrast     # WCAG contrast ratios for the design tokens
 
 ## Stack
 Plain HTML, CSS and ES-module JavaScript. No framework and no build step, so it deploys as static files.
-IndexedDB holds research data; localStorage holds the theme. OpenAlex provides paper search (set `OPENALEX_MAILTO` in `js/config.js`); Crossref is planned for Stage 5.
+IndexedDB holds research data; localStorage holds the theme. OpenAlex and Crossref provide paper search (set `CONTACT_EMAIL` in `js/config.js`).
 
 ## Structure
 ```

@@ -1,3 +1,5 @@
+import { safeUrl } from './api/paper.js';
+
 /** Data-layer validation. The forms validate for the user's benefit; this guards what reaches
  *  IndexedDB (and, later, anything imported from a JSON backup). Pure, so it is unit-tested. */
 export const LIMITS = {
@@ -37,4 +39,37 @@ export function validateQuestion(input = {}) {
 export function assertValid(result) {
   if (!result.valid) throw new ValidationError(result.errors);
   return result.values;
+}
+
+const OA_STATUSES = ['gold', 'green', 'hybrid', 'bronze', 'diamond', 'closed', 'unknown', 'open'];
+
+/** Whitelist and coerce every field of a paper before it is stored. This is also what a JSON import
+ *  will go through, so a hand-edited or hostile backup file cannot put unexpected data in the database. */
+export function validatePaper(input = {}) {
+  const errors = {};
+  const id = str(input.id);
+  const title = str(input.title).slice(0, 1000);
+  if (!id || id.length > 300) errors.id = 'A paper needs an id.';
+  if (!title) errors.title = 'A paper needs a title.';
+  const list = (v, max, len) => (Array.isArray(v) ? v.map((x) => str(x).slice(0, len)).filter(Boolean).slice(0, max) : []);
+  const int = (v) => (Number.isInteger(v) && v >= 0 && v < 1e9 ? v : 0);
+  const values = {
+    id,
+    title,
+    doi: str(input.doi).toLowerCase().slice(0, 200),
+    authors: list(input.authors, 200, 200),
+    year: Number.isInteger(input.year) && input.year > 1000 && input.year < 3000 ? input.year : null,
+    venue: str(input.venue).slice(0, 500),
+    abstract: str(input.abstract).slice(0, 20000),
+    url: safeUrl(input.url),
+    oaUrl: safeUrl(input.oaUrl),
+    isOa: input.isOa === true,
+    oaStatus: OA_STATUSES.includes(input.oaStatus) ? input.oaStatus : 'unknown',
+    citedBy: int(input.citedBy),
+    type: str(input.type).slice(0, 60),
+    source: str(input.source).slice(0, 40),
+    sources: list(input.sources, 5, 40),
+    sourceId: str(input.sourceId).slice(0, 300),
+  };
+  return { valid: Object.keys(errors).length === 0, errors, values };
 }

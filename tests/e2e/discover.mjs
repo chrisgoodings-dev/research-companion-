@@ -26,6 +26,16 @@ await page.route('https://api.openalex.org/**', async (route) => {
   return route.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'application/json' }, body: JSON.stringify(works) });
 });
 
+// Crossref mirrors the OpenAlex mode (offline / rate limit / slow) but otherwise returns no items,
+// so these Stage 4 checks stay about the form and states. Merging is covered in save.mjs.
+const crossrefEmpty = JSON.parse(await readFile('tests/fixtures/crossref-empty.json', 'utf8'));
+await page.route('https://api.crossref.org/**', async (route) => {
+  if (mode === 'slow') await new Promise((r) => setTimeout(r, 700));
+  if (mode === 'offline') return route.abort('failed');
+  if (mode === 'rate') return route.fulfill({ status: 429, headers: CORS, body: '{}' });
+  return route.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'application/json' }, body: JSON.stringify(crossrefEmpty) });
+});
+
 await page.goto(`${base}#/discover`);
 await page.waitForSelector('#search-form');
 check((await page.textContent('#results-summary')).includes('Enter a search'), 'idle state explains what to do');
@@ -153,6 +163,7 @@ check(errors.length === 0, `no unexpected console/page errors${errors.length ? '
 
 // --- Mobile + dark
 const m = await (await browser.newContext({ viewport: { width: 320, height: 700 }, deviceScaleFactor: 2, colorScheme: 'dark' })).newPage();
+await m.route('https://api.crossref.org/**', (r) => r.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'application/json' }, body: JSON.stringify(crossrefEmpty) }));
 await m.route('https://api.openalex.org/**', (r) => r.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'application/json' }, body: JSON.stringify(works) }));
 await m.goto(`${base}#/discover?q=copilot`);
 await m.waitForSelector('.paper');

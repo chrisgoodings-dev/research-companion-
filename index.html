@@ -73,6 +73,22 @@
     </form>
   </dialog>
 
+  <dialog id="save-dialog" class="sheet" aria-labelledby="save-title" aria-describedby="save-paper">
+    <form method="dialog" class="form">
+      <h2 id="save-title" class="sheet__title">Save to project</h2>
+      <p id="save-paper" class="save__paper"></p>
+      <div class="field">
+        <label class="field__label" for="save-project">Project <span class="field__req">(required)</span></label>
+        <p class="field__hint" id="save-project-hint">A paper can be saved to more than one project.</p>
+        <select id="save-project" name="save-project" required aria-describedby="save-project-hint"></select>
+      </div>
+      <div class="actions">
+        <button type="submit" value="cancel" class="btn btn--secondary">Cancel</button>
+        <button type="submit" value="save" class="btn btn--primary">Save paper</button>
+      </div>
+    </form>
+  </dialog>
+
   <div id="toasts" class="toasts"></div>
 
   <!-- Polite live region: route changes and status messages are announced here (WCAG 4.1.3). -->

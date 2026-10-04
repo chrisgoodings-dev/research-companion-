@@ -33,8 +33,8 @@ export const dashboardRoute = {
       </section>
       <section class="card" aria-labelledby="status-h">
         <h2 id="status-h">Build status</h2>
-        <p><span class="badge">Stage 4 of 12</span></p>
-        <p>Projects, research questions and paper search (OpenAlex) are working. Saving papers to a project comes next.</p>
+        <p><span class="badge">Stage 5 of 12</span></p>
+        <p>Projects, research questions, paper search (OpenAlex + Crossref) and saving papers are working. The library and paper review come next.</p>
       </section>
     </div>`,
   async mount(outlet) {

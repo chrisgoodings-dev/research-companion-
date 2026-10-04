@@ -79,7 +79,8 @@ export function wireForm(form, onSubmit, { crossChecks = [] } = {}) {
     const buttons = form.querySelectorAll('button[type=submit]');
     buttons.forEach((b) => { b.disabled = true; });
     try {
-      await onSubmit(Object.fromEntries(new FormData(form)));
+      const data = new FormData(form);
+      await onSubmit(Object.fromEntries(data), data);
     } catch (err) {
       console.error(err);
       announce(`Could not save: ${err.message}`);

@@ -1,0 +1,100 @@
+{
+  "status": "ok",
+  "message-type": "work-list",
+  "message": {
+    "total-results": 5678,
+    "items-per-page": 20,
+    "items": [
+      {
+        "DOI": "10.1145/3597503.3608128",
+        "title": [
+          "Productivity Assessment of Neural Code Completion"
+        ],
+        "author": [
+          {
+            "given": "Albert",
+            "family": "Ziegler"
+          },
+          {
+            "given": "Eirini",
+            "family": "Kalliamvakou"
+          }
+        ],
+        "issued": {
+          "date-parts": [
+            [
+              2022,
+              6
+            ]
+          ]
+        },
+        "container-title": [
+          "Proceedings of MAPS 2022"
+        ],
+        "abstract": "<jats:p>Neural code completion tools can improve developer productivity. We study real usage telemetry from thousands of developers, showing that acceptance rate is the best predictor of perceived productivity.</jats:p>",
+        "URL": "https://doi.org/10.1145/3597503.3608128",
+        "is-referenced-by-count": 230,
+        "type": "proceedings-article"
+      },
+      {
+        "DOI": "10.1109/TSE.2023.9999999",
+        "title": [
+          "Security Weaknesses of Copilot &amp; Friends: An Empirical Study"
+        ],
+        "author": [
+          {
+            "name": "GitHub Research Team"
+          },
+          {
+            "given": "Yujia",
+            "family": "Fu"
+          }
+        ],
+        "issued": {
+          "date-parts": [
+            [
+              2023
+            ]
+          ]
+        },
+        "container-title": [
+          "IEEE Transactions on Software Engineering"
+        ],
+        "abstract": "<jats:title>Abstract</jats:title><jats:p>Abstract: We analyse 435 code snippets &lt;generated&gt; by AI assistants.</jats:p>",
+        "URL": "https://doi.org/10.1109/TSE.2023.9999999",
+        "is-referenced-by-count": 41,
+        "type": "journal-article"
+      },
+      {
+        "DOI": "10.1000/XYZ.123",
+        "title": [
+          "A Survey of Large Language Models for Code"
+        ],
+        "author": [],
+        "issued": {
+          "date-parts": [
+            [
+              2024
+            ]
+          ]
+        },
+        "container-title": [],
+        "URL": "javascript:alert(1)",
+        "is-referenced-by-count": 3,
+        "type": "journal-article"
+      },
+      {
+        "DOI": "10.5555/no-title",
+        "title": [],
+        "issued": {
+          "date-parts": [
+            [
+              null
+            ]
+          ]
+        },
+        "type": "journal-article"
+      }
+    ]
+  }
+}

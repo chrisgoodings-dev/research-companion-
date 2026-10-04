@@ -81,3 +81,77 @@ test('removing a question removes evidence recorded against it', async () => {
   await repo.questions.remove(q.id);
   assert.equal((await repo.counts()).evidenceNotes, 1);
 });
+
+/* ---------- saved papers ---------- */
+const paper = (id, extra = {}) => ({ id, title: `Paper ${id}`, doi: '', authors: ['A'], year: 2021, sources: ['openalex'], ...extra });
+
+test('saveToProject stores the paper once and links it per project', async () => {
+  const repo = await freshRepo();
+  const p1 = await repo.projects.create({ name: 'Project one' });
+  const p2 = await repo.projects.create({ name: 'Project two' });
+  assert.equal((await repo.papers.saveToProject(p1.id, paper('doi:10.1/a'))).created, true);
+  assert.equal((await repo.papers.saveToProject(p1.id, paper('doi:10.1/a'))).created, false, 'second save to same project is a no-op');
+  assert.equal((await repo.papers.saveToProject(p2.id, paper('doi:10.1/a'))).created, true, 'same paper can live in another project');
+  const c = await repo.counts();
+  assert.equal(c.papers, 1, 'one shared paper record');
+  assert.deepEqual((await repo.papers.listByProject(p1.id)).map((p) => p.id), ['doi:10.1/a']);
+  const map = await repo.papers.savedMap();
+  assert.deepEqual([...map['doi:10.1/a']].sort(), [p1.id, p2.id].sort(), 'order is not significant');
+});
+
+test('saveToProject validates input and requires a real project', async () => {
+  const repo = await freshRepo();
+  const p = await repo.projects.create({ name: 'Project one' });
+  await assert.rejects(repo.papers.saveToProject(p.id, { id: '', title: '' }), ValidationError);
+  await assert.rejects(repo.papers.saveToProject('missing', paper('x')), /Project not found/);
+  assert.equal((await repo.counts()).papers, 0);
+});
+
+test('saving again refreshes stored metadata', async () => {
+  const repo = await freshRepo();
+  const p = await repo.projects.create({ name: 'Project one' });
+  await repo.papers.saveToProject(p.id, paper('doi:10.1/a', { abstract: '' }));
+  await repo.papers.saveToProject(p.id, paper('doi:10.1/a', { abstract: 'Now with an abstract' }));
+  assert.equal((await repo.papers.listByProject(p.id))[0].abstract, 'Now with an abstract');
+});
+
+test('listByProject is newest-first', async () => {
+  const repo = await freshRepo();
+  const p = await repo.projects.create({ name: 'Project one' });
+  await repo.papers.saveToProject(p.id, paper('a'));
+  await new Promise((r) => setTimeout(r, 5));
+  await repo.papers.saveToProject(p.id, paper('b'));
+  assert.deepEqual((await repo.papers.listByProject(p.id)).map((x) => x.id), ['b', 'a']);
+});
+
+test('removeFromProject removes only that project\'s link and evidence, and prunes orphans', async () => {
+  const repo = await freshRepo();
+  const p1 = await repo.projects.create({ name: 'Project one' });
+  const p2 = await repo.projects.create({ name: 'Project two' });
+  await repo.papers.saveToProject(p1.id, paper('shared'));
+  await repo.papers.saveToProject(p2.id, paper('shared'));
+  await repo.papers.saveToProject(p1.id, paper('solo'));
+  const tx = repo.db.transaction('evidenceNotes', 'readwrite');
+  tx.objectStore('evidenceNotes').add({ id: 'e1', projectId: p1.id, paperId: 'shared', researchQuestionId: 'q' });
+  tx.objectStore('evidenceNotes').add({ id: 'e2', projectId: p2.id, paperId: 'shared', researchQuestionId: 'q' });
+  await finished(tx);
+
+  await repo.papers.removeFromProject(p1.id, 'shared');
+  assert.equal((await repo.counts()).evidenceNotes, 1, "other project's evidence about the same paper survives");
+  assert.equal((await repo.counts()).papers, 2, 'shared paper still referenced by project two');
+  await repo.papers.removeFromProject(p1.id, 'solo');
+  assert.equal((await repo.counts()).papers, 1, 'unreferenced paper pruned');
+});
+
+test('deleting a project removes its links and prunes papers only it used', async () => {
+  const repo = await freshRepo();
+  const keep = await repo.projects.create({ name: 'Keep this one' });
+  const drop = await repo.projects.create({ name: 'Delete this one' });
+  await repo.papers.saveToProject(keep.id, paper('shared'));
+  await repo.papers.saveToProject(drop.id, paper('shared'));
+  await repo.papers.saveToProject(drop.id, paper('only-drop'));
+  await repo.projects.remove(drop.id);
+  assert.equal((await repo.counts()).papers, 1);
+  assert.deepEqual((await repo.papers.listByProject(keep.id)).map((p) => p.id), ['shared']);
+  assert.deepEqual(await repo.papers.savedMap(), { shared: [keep.id] });
+});

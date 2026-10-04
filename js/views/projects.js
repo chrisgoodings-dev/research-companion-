@@ -5,6 +5,7 @@ import { field } from '../ui/fields.js';
 import { wireForm } from '../ui/forms.js';
 import { showToast } from '../ui/toast.js';
 import { confirmAction } from '../ui/confirm.js';
+import { formatAuthors } from '../api/paper.js';
 
 const date = (iso) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
@@ -82,9 +83,10 @@ async function mountDetail(outlet, repo, id, ctx) {
       return;
     }
     const questions = await repo.questions.listByProject(id);
+    const savedPapers = await repo.papers.listByProject(id);
     h1.textContent = project.name;
     document.title = `${project.name} · SE Research Hub`;
-    intro.textContent = `Created ${date(project.createdAt)} · ${plural(questions.length, 'research question')}`;
+    intro.textContent = `Created ${date(project.createdAt)} · ${plural(questions.length, 'research question')} · ${plural(savedPapers.length, 'saved paper')}`;
 
     body.innerHTML = `
       <nav class="breadcrumb" aria-label="Breadcrumb"><ol><li><a href="#/projects">Projects</a></li><li aria-current="page">${esc(project.name)}</li></ol></nav>
@@ -110,6 +112,14 @@ async function mountDetail(outlet, repo, id, ctx) {
             <p class="form-status" role="alert"></p>
             <button type="submit" class="btn btn--primary">Add question</button>
           </form>
+
+          <h2 id="sp-h" tabindex="-1" class="section-gap">Saved papers</h2>
+          ${savedPapers.length ? `<ul class="stack">${savedPapers.map((p) => `
+            <li class="card saved-paper">
+              <p class="saved-paper__title">${p.url ? `<a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">${esc(p.title)}<span class="visually-hidden"> (opens in a new tab)</span></a>` : esc(p.title)}</p>
+              <p class="saved-paper__meta">${esc(formatAuthors(p.authors, 3))}${p.year ? ` · ${p.year}` : ''}${p.venue ? ` · ${esc(p.venue)}` : ''}</p>
+              <div class="actions"><button type="button" class="btn btn--danger-outline btn--small" data-remove-paper="${esc(p.id)}">Remove<span class="visually-hidden">: ${esc(p.title)}</span></button></div>
+            </li>`).join('')}</ul>` : '<p class="card empty-state">No papers saved yet. Find some in <a href="#/discover">Discover</a>.</p>'}
         </section>
 
         <div class="stack">
@@ -142,7 +152,7 @@ async function mountDetail(outlet, repo, id, ctx) {
     body.querySelector('#delete-project').addEventListener('click', async () => {
       const ok = await confirmAction({
         title: `Delete “${project.name}”?`,
-        body: `This also deletes ${plural(questions.length, 'research question')} and any linked evidence. This cannot be undone.`,
+        body: `This also deletes ${plural(questions.length, 'research question')}, ${plural(savedPapers.length, 'saved paper link')} and any linked evidence. This cannot be undone.`,
         confirmLabel: 'Delete project',
       });
       if (!ok) return;
@@ -155,6 +165,15 @@ async function mountDetail(outlet, repo, id, ctx) {
       const index = questions.indexOf(q) + 1;
       if (btn.dataset.action === 'edit') editQuestion(btn.closest('.rq'), q, index);
       else deleteQuestion(q, index);
+    }));
+
+    body.querySelectorAll('[data-remove-paper]').forEach((btn) => btn.addEventListener('click', async () => {
+      const paper = savedPapers.find((x) => x.id === btn.dataset.removePaper);
+      const ok = await confirmAction({ title: 'Remove this paper?', body: `“${paper.title}” will be removed from this project, along with any evidence you recorded about it here. It stays in other projects.`, confirmLabel: 'Remove paper' });
+      if (!ok) return;
+      await repo.papers.removeFromProject(id, paper.id);
+      showToast('Paper removed from project');
+      await draw('#sp-h');
     }));
 
     if (focus) body.querySelector(focus)?.focus();

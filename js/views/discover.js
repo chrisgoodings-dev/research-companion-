@@ -1,10 +1,14 @@
-import { searchOpenAlex, SORTS } from '../api/openalex.js';
+import { SORTS } from '../api/openalex.js';
+import { searchAll, SOURCES, ALL_SOURCES } from '../api/search.js';
 import { formatAuthors } from '../api/paper.js';
+import { getRepo } from '../db/index.js';
 import { parseQuery } from '../router.js';
 import { esc } from '../ui/dom.js';
 import { field } from '../ui/fields.js';
 import { wireForm } from '../ui/forms.js';
 import { announce } from '../ui/announcer.js';
+import { showToast } from '../ui/toast.js';
+import { chooseProject } from '../ui/saveDialog.js';
 
 const THIS_YEAR = new Date().getFullYear();
 const num = new Intl.NumberFormat('en-GB');
@@ -15,6 +19,7 @@ const SORT_LABEL = { relevance: 'Relevance', newest: 'Newest first', cited: 'Mos
  *  the browser's Back button restores them. */
 function readQuery() {
   const p = parseQuery(location.hash);
+  const src = (p.get('src') ?? '').split(',').filter((s) => ALL_SOURCES.includes(s));
   return {
     q: (p.get('q') ?? '').trim(),
     from: p.get('from') ?? '',
@@ -22,15 +27,17 @@ function readQuery() {
     oa: p.get('oa') === '1',
     sort: Object.hasOwn(SORTS, p.get('sort')) ? p.get('sort') : 'relevance',
     page: Math.max(1, Number.parseInt(p.get('page'), 10) || 1),
+    sources: src.length ? src : ALL_SOURCES,
   };
 }
 
-function toHash({ q, from, to, oa, sort, page }) {
+function toHash({ q, from, to, oa, sort, page, sources }) {
   const p = new URLSearchParams({ q });
   if (from) p.set('from', from);
   if (to) p.set('to', to);
   if (oa) p.set('oa', '1');
   if (sort && sort !== 'relevance') p.set('sort', sort);
+  if (sources.length !== ALL_SOURCES.length) p.set('src', sources.join(','));
   if (page > 1) p.set('page', String(page));
   return `#/discover?${p}`;
 }
@@ -41,6 +48,8 @@ const yearOrder = (form) => {
   return from.value && to.value && Number(from.value) > Number(to.value)
     ? [{ input: to, message: 'Latest year must be the same as, or later than, the earliest year.' }] : [];
 };
+const sourceChosen = (form) => (form.querySelector('input[name="d-src"]:checked')
+  ? [] : [{ input: form.querySelector('#d-src-openalex'), message: 'Choose at least one source.' }]);
 
 export const discoverRoute = {
   title: 'Discover',
@@ -49,7 +58,7 @@ export const discoverRoute = {
     return `
     <div class="page-header">
       <h1>Discover</h1>
-      <p>Search scholarly papers through OpenAlex. Results show title, authors, year, venue and abstract.</p>
+      <p>Search scholarly papers through OpenAlex and Crossref, then save the useful ones to a project.</p>
     </div>
 
     <form id="search-form" class="card form" role="search" aria-label="Search papers">
@@ -71,8 +80,19 @@ export const discoverRoute = {
         <div class="check">
           <input type="checkbox" id="d-oa" name="d-oa" value="1" aria-describedby="d-oa-hint"${q.oa ? ' checked' : ''}>
           <label for="d-oa">Open access only</label>
-          <p class="field__hint check__hint" id="d-oa-hint">Only papers that can be read for free.</p>
+          <p class="field__hint check__hint" id="d-oa-hint">Only papers that can be read for free. Crossref does not report this, so it is skipped when this is on.</p>
         </div>
+      </fieldset>
+
+      <fieldset class="filters">
+        <legend>Sources</legend>
+        <p class="field__hint" id="d-src-openalex-hint">Choose at least one. Results from both are merged and duplicates (same DOI) are combined.</p>
+        ${ALL_SOURCES.map((key) => `
+        <div class="check">
+          <input type="checkbox" id="d-src-${key}" name="d-src" value="${key}"${q.sources.includes(key) ? ' checked' : ''}${key === ALL_SOURCES[0] ? ' aria-describedby="d-src-openalex-hint d-src-openalex-error"' : ''}>
+          <label for="d-src-${key}">${SOURCES[key].label}</label>
+        </div>`).join('')}
+        <p class="field__error" id="d-src-openalex-error" hidden></p>
       </fieldset>
 
       <p class="form-status" role="alert"></p>
@@ -82,16 +102,30 @@ export const discoverRoute = {
     <section id="results" class="results" aria-labelledby="results-h" aria-busy="false">
       <h2 id="results-h" tabindex="-1">Results</h2>
       <p id="results-summary" class="results__summary">Enter a search above to find papers.</p>
+      <div id="results-notes"></div>
       <div id="results-body"></div>
     </section>`;
   },
 
-  mount(outlet) {
+  async mount(outlet) {
     const form = outlet.querySelector('#search-form');
     const section = outlet.querySelector('#results');
     const summary = outlet.querySelector('#results-summary');
+    const notes = outlet.querySelector('#results-notes');
     const body = outlet.querySelector('#results-body');
     let controller;
+    let papersById = new Map();
+
+    // Saving needs browser storage. If it is blocked, searching must still work.
+    let repo = null;
+    let projects = [];
+    let saved = {};
+    try { repo = await getRepo(); await refreshSaved(); } catch { repo = null; }
+
+    async function refreshSaved() {
+      [projects, saved] = await Promise.all([repo.projects.list(), repo.papers.savedMap()]);
+    }
+    const nameOf = (id) => projects.find((p) => p.id === id)?.name ?? 'a deleted project';
 
     async function run(query, { moveFocus = false } = {}) {
       controller?.abort();
@@ -100,12 +134,14 @@ export const discoverRoute = {
 
       section.setAttribute('aria-busy', 'true');
       summary.textContent = `Searching for “${query.q}”…`;
+      notes.innerHTML = '';
       body.innerHTML = '';
       announce(`Searching for ${query.q}`);
 
       try {
-        const result = await searchOpenAlex(query, { signal });
+        const result = await searchAll(query, { sources: query.sources, signal });
         if (signal.aborted) return;
+        if (repo) await refreshSaved().catch(() => {});
         draw(query, result);
         if (moveFocus) outlet.querySelector('#results-h').focus();
       } catch (err) {
@@ -116,7 +152,13 @@ export const discoverRoute = {
       }
     }
 
-    function draw(query, { total, page, pages, papers }) {
+    function draw(query, { total, page, pages, papers, notes: sourceNotes, sourcesUsed }) {
+      papersById = new Map(papers.map((p) => [p.id, p]));
+      notes.innerHTML = [
+        ...sourceNotes.map((n) => `<p class="notice" role="note">${esc(n.message)}</p>`),
+        repo ? '' : '<p class="notice" role="note">Saving papers is unavailable because your browser is blocking local storage.</p>',
+      ].join('');
+
       if (!papers.length) {
         summary.textContent = `No papers found for “${query.q}”.`;
         body.innerHTML = `<div class="card empty-state"><h3>No results</h3>
@@ -124,11 +166,50 @@ export const discoverRoute = {
         announce(`No results found for ${query.q}`);
         return;
       }
-      const message = `${num.format(total)} result${total === 1 ? '' : 's'} for “${query.q}”. Page ${page} of ${num.format(pages)}.`;
+      const from = sourcesUsed.map((s) => SOURCES[s].label).join(' and ');
+      const message = `${sourcesUsed.length > 1 ? 'About ' : ''}${num.format(total)} result${total === 1 ? '' : 's'} for “${query.q}” from ${from}. Page ${page} of ${num.format(pages)}.`;
       summary.textContent = message;
-      announce(message.replace(/[“”]/g, ''));
-      body.innerHTML = `<ol class="stack results__list" start="${(page - 1) * 20 + 1}">${papers.map(paperCard).join('')}</ol>${pager(page, pages)}`;
+      announce(`${message.replace(/[“”]/g, '')}${sourceNotes.length ? ` ${sourceNotes.length} source notice${sourceNotes.length === 1 ? '' : 's'} below.` : ''}`);
+
+      body.innerHTML = `<ol class="stack results__list" start="${(page - 1) * 20 + 1}">${papers.map((p) => `<li class="card paper" data-paper="${esc(p.id)}">${paperCard(p)}${savePanel(p)}</li>`).join('')}</ol>${pager(page, pages)}`;
       body.querySelectorAll('[data-page]').forEach((btn) => btn.addEventListener('click', () => go({ ...query, page: Number(btn.dataset.page) }, true)));
+      body.querySelectorAll('[data-save]').forEach((btn) => btn.addEventListener('click', () => save(btn.dataset.save)));
+    }
+
+    function savePanel(p) {
+      if (!repo) return '';
+      if (!projects.length) {
+        return '<div class="paper__actions"><a class="btn btn--secondary btn--small" href="#/projects">Create a project to save papers</a></div>';
+      }
+      const inProjects = saved[p.id] ?? [];
+      const remaining = projects.filter((pr) => !inProjects.includes(pr.id));
+      const status = inProjects.length ? `<p class="paper__saved">Saved to: ${inProjects.map((id) => esc(nameOf(id))).join(', ')}</p>` : '';
+      const button = remaining.length
+        ? `<button type="button" class="btn btn--secondary btn--small" data-save="${esc(p.id)}">${inProjects.length ? 'Save to another project' : 'Save to project'}<span class="visually-hidden">: ${esc(p.title)}</span></button>`
+        : '';
+      return `<div class="paper__actions">${button}${status}</div>`;
+    }
+
+    async function save(paperId) {
+      const paper = papersById.get(paperId);
+      const card = body.querySelector(`[data-paper="${CSS.escape(paperId)}"]`);
+      const inProjects = saved[paperId] ?? [];
+      const choices = projects.filter((pr) => !inProjects.includes(pr.id));
+      const projectId = await chooseProject({ paperTitle: paper.title, projects: choices });
+      if (!projectId) return; // cancelled: focus is already back on the button
+      try {
+        await repo.papers.saveToProject(projectId, paper);
+        await refreshSaved();
+        const slot = card.querySelector('.paper__actions');
+        slot.outerHTML = savePanel(paper);
+        card.querySelector('[data-save]')?.addEventListener('click', () => save(paperId));
+        (card.querySelector('[data-save]') ?? card.querySelector('.paper__saved'))?.setAttribute('tabindex', '-1');
+        (card.querySelector('[data-save]') ?? card.querySelector('.paper__saved'))?.focus();
+        showToast(`Saved to “${nameOf(projectId)}”`);
+      } catch (err) {
+        console.error(err);
+        showToast(`Could not save: ${err.message}`);
+      }
     }
 
     function drawError(query, err) {
@@ -144,13 +225,12 @@ export const discoverRoute = {
       run(query, { moveFocus });
     }
 
-    wireForm(form, async (v) => {
-      go({ q: v['d-q'].trim(), from: v['d-from'], to: v['d-to'], oa: v['d-oa'] === '1', sort: v['d-sort'], page: 1 });
-    }, { crossChecks: [yearOrder] });
+    wireForm(form, async (v, data) => {
+      go({ q: v['d-q'].trim(), from: v['d-from'], to: v['d-to'], oa: v['d-oa'] === '1', sort: v['d-sort'], sources: data.getAll('d-src'), page: 1 });
+    }, { crossChecks: [yearOrder, sourceChosen] });
 
     const initial = readQuery();
-    if (initial.q.length >= 2) return run(initial);
-    return undefined;
+    if (initial.q.length >= 2) await run(initial);
   },
 };
 
@@ -161,7 +241,6 @@ function paperCard(p) {
     : esc(p.title);
   const meta = [p.year, p.venue].filter(Boolean).map(esc).join(' · ');
   return `
-    <li class="card paper">
       <h3 class="paper__title">${title}</h3>
       <p class="paper__authors">${esc(formatAuthors(p.authors))}</p>
       <p class="paper__meta">${meta || 'Year and venue unknown'} ${oa} <span class="badge">Cited by ${num.format(p.citedBy)}</span></p>
@@ -169,7 +248,7 @@ function paperCard(p) {
         ? `<details class="paper__abstract"><summary>Abstract</summary><p>${esc(p.abstract)}</p></details>`
         : '<p class="paper__noabstract">No abstract available.</p>'}
       ${p.doi ? `<p class="paper__doi">DOI: <a href="https://doi.org/${esc(p.doi)}" target="_blank" rel="noopener noreferrer">${esc(p.doi)}<span class="visually-hidden"> (opens in a new tab)</span></a></p>` : ''}
-    </li>`;
+      <p class="paper__sources">Found in: ${p.sources.map((s) => esc(SOURCES[s]?.label ?? s)).join(', ')}</p>`;
 }
 
 function pager(page, pages) {

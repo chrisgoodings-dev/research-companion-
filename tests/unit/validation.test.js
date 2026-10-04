@@ -29,3 +29,23 @@ test('question: length bounds', () => {
 test('assertValid throws ValidationError with field errors', () => {
   assert.throws(() => assertValid(validateProject({ name: '' })), (e) => e instanceof ValidationError && 'name' in e.errors);
 });
+
+import { validatePaper } from '../../js/validation.js';
+
+test('paper: whitelists fields and coerces types', () => {
+  const r = validatePaper({ id: 'doi:10.1/a', title: '  A paper ', doi: '10.1/A', authors: ['A', '', 5, 'B'], year: 2020, url: 'https://x.org', evil: '<script>', isOa: 'yes', citedBy: -4, oaStatus: 'weird' });
+  assert.equal(r.valid, true);
+  assert.equal(r.values.title, 'A paper');
+  assert.deepEqual(r.values.authors, ['A', 'B']);
+  assert.equal(r.values.isOa, false, 'only literal true counts');
+  assert.equal(r.values.citedBy, 0);
+  assert.equal(r.values.oaStatus, 'unknown');
+  assert.equal('evil' in r.values, false, 'unknown fields are dropped');
+});
+
+test('paper: rejects missing id/title and unsafe URLs are blanked', () => {
+  assert.equal(validatePaper({ id: '', title: 'x' }).valid, false);
+  assert.equal(validatePaper({ id: 'a', title: '   ' }).valid, false);
+  assert.equal(validatePaper({ id: 'a', title: 'x', url: 'javascript:alert(1)', oaUrl: 'data:text/html,x' }).values.url, '');
+  assert.equal(validatePaper().valid, false);
+});
