@@ -1,5 +1,5 @@
 import { wrap, finished } from './db.js';
-import { assertValid, validateProject, validateQuestion, validatePaper } from '../validation.js';
+import { assertValid, validateProject, validateQuestion, validatePaper, validateReview } from '../validation.js';
 
 const newId = () => globalThis.crypto.randomUUID();
 const now = () => new Date().toISOString();
@@ -114,19 +114,55 @@ export function createRepository(db) {
       const linkId = `${projectId}:${paper.id}`;
       const existing = await wrap(tx.objectStore('projectPapers').get(linkId));
       tx.objectStore('papers').put(paper); // refresh stored metadata with the latest merged record
-      if (!existing) tx.objectStore('projectPapers').add({ id: linkId, projectId, paperId: paper.id, addedAt: now() });
+      if (!existing) tx.objectStore('projectPapers').add({ id: linkId, projectId, paperId: paper.id, addedAt: now(), status: 'unread', review: null, reviewedAt: null });
       await done;
       return { created: !existing, paper };
     },
 
-    /** Papers in a project, newest first, each with `addedAt`. */
+    /** Papers in a project, newest first, each with `addedAt`, `status` and `hasReview`. */
     async listByProject(projectId) {
       const links = await wrap(store('projectPapers').index('projectId').getAll(projectId));
       const rows = await Promise.all(links.map(async (l) => {
         const paper = await wrap(store('papers').get(l.paperId));
-        return paper ? { ...paper, addedAt: l.addedAt } : null;
+        return paper ? { ...paper, addedAt: l.addedAt, status: l.status ?? 'unread', hasReview: Boolean(l.review) } : null;
       }));
       return rows.filter(Boolean).sort((a, b) => b.addedAt.localeCompare(a.addedAt));
+    },
+
+    /** Every saved paper with its project links (status, review), newest save first. Used by the Library. */
+    async listAll() {
+      const [all, links] = await Promise.all([wrap(store('papers').getAll()), wrap(store('projectPapers').getAll())]);
+      const byPaper = new Map();
+      for (const l of links) {
+        const entry = { projectId: l.projectId, addedAt: l.addedAt, status: l.status ?? 'unread', hasReview: Boolean(l.review), reviewedAt: l.reviewedAt ?? null };
+        byPaper.set(l.paperId, [...(byPaper.get(l.paperId) ?? []), entry]);
+      }
+      return all
+        .map((paper) => ({ ...paper, links: (byPaper.get(paper.id) ?? []).sort((a, b) => b.addedAt.localeCompare(a.addedAt)) }))
+        .filter((p) => p.links.length)
+        .sort((a, b) => b.links[0].addedAt.localeCompare(a.links[0].addedAt));
+    },
+
+    /** One paper plus every project link (with full review text), or undefined if it is not saved. */
+    async getWithLinks(paperId) {
+      const paper = await wrap(store('papers').get(paperId));
+      if (!paper) return undefined;
+      const links = await wrap(store('projectPapers').index('paperId').getAll(paperId));
+      return { ...paper, links: links.map((l) => ({ ...l, status: l.status ?? 'unread', review: l.review ?? null })).sort((a, b) => b.addedAt.localeCompare(a.addedAt)) };
+    },
+
+    /** Save the structured review for a paper within one project (the link must already exist). */
+    async saveReview(projectId, paperId, input) {
+      const values = assertValid(validateReview(input));
+      const { status, ...fields } = values;
+      const tx = db.transaction('projectPapers', 'readwrite');
+      const done = finished(tx);
+      const link = await wrap(tx.objectStore('projectPapers').get(`${projectId}:${paperId}`));
+      if (!link) { tx.abort(); await done.catch(() => {}); throw new Error('That paper is not saved in this project.'); }
+      const updated = { ...link, status, review: fields, reviewedAt: now() };
+      tx.objectStore('projectPapers').put(updated);
+      await done;
+      return updated;
     },
 
     /** { [paperId]: [projectId, ...] } for every saved paper, so search results can show what is saved. */

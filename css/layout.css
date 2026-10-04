@@ -49,6 +49,7 @@
 .nav__secondary { display: none; }   /* Projects/Evidence/Matrix/Progress live in the Menu sheet on mobile */
 
 .main {
+  overflow-wrap: anywhere;   /* long unbroken titles, DOIs and URLs wrap instead of overflowing (WCAG 1.4.10) */
   padding: var(--space-5) var(--space-4);
   max-width: 80rem;
   width: 100%;

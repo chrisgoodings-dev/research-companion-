@@ -49,3 +49,16 @@ test('paper: rejects missing id/title and unsafe URLs are blanked', () => {
   assert.equal(validatePaper({ id: 'a', title: 'x', url: 'javascript:alert(1)', oaUrl: 'data:text/html,x' }).values.url, '');
   assert.equal(validatePaper().valid, false);
 });
+
+import { validateReview, REVIEW_MAX } from '../../js/validation.js';
+
+test('review: status required, text trimmed and bounded, unknown fields dropped', () => {
+  const ok = validateReview({ status: 'reading', studyAim: '  Aim  ', keyFindings: 'F', junk: 'x' });
+  assert.equal(ok.valid, true);
+  assert.equal(ok.values.studyAim, 'Aim');
+  assert.equal(ok.values.methodology, '', 'missing fields become empty strings');
+  assert.equal('junk' in ok.values, false);
+  assert.equal(validateReview({ status: 'finished' }).errors.status, 'Choose a reading status.');
+  assert.equal(validateReview({}).valid, false);
+  assert.equal(validateReview({ status: 'read', notes: 'n'.repeat(REVIEW_MAX + 1) }).errors.notes.includes(String(REVIEW_MAX)), true);
+});

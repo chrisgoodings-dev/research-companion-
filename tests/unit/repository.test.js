@@ -155,3 +155,78 @@ test('deleting a project removes its links and prunes papers only it used', asyn
   assert.deepEqual((await repo.papers.listByProject(keep.id)).map((p) => p.id), ['shared']);
   assert.deepEqual(await repo.papers.savedMap(), { shared: [keep.id] });
 });
+
+/* ---------- library + reviews ---------- */
+test('new links start unread with no review; listAll joins papers with their links', async () => {
+  const repo = await freshRepo();
+  const p1 = await repo.projects.create({ name: 'Project one' });
+  const p2 = await repo.projects.create({ name: 'Project two' });
+  await repo.papers.saveToProject(p1.id, paper('a'));
+  await new Promise((r) => setTimeout(r, 5));
+  await repo.papers.saveToProject(p1.id, paper('b'));
+  await repo.papers.saveToProject(p2.id, paper('b'));
+  const all = await repo.papers.listAll();
+  assert.deepEqual(all.map((p) => p.id), ['b', 'a'], 'most recently saved first');
+  assert.equal(all[0].links.length, 2);
+  assert.equal(all[1].links[0].status, 'unread');
+  assert.equal(all[1].links[0].hasReview, false);
+});
+
+test('saveReview stores status + fields on the link and survives re-saving the paper', async () => {
+  const repo = await freshRepo();
+  const p = await repo.projects.create({ name: 'Project one' });
+  await repo.papers.saveToProject(p.id, paper('a'));
+  await repo.papers.saveReview(p.id, 'a', { status: 'read', studyAim: 'Measure productivity', keyFindings: 'Faster by 20%' });
+  let got = await repo.papers.getWithLinks('a');
+  assert.equal(got.links[0].status, 'read');
+  assert.equal(got.links[0].review.studyAim, 'Measure productivity');
+  assert.ok(got.links[0].reviewedAt);
+  await repo.papers.saveToProject(p.id, paper('a', { abstract: 'refreshed metadata' })); // saving again must not wipe the review
+  got = await repo.papers.getWithLinks('a');
+  assert.equal(got.abstract, 'refreshed metadata');
+  assert.equal(got.links[0].review.keyFindings, 'Faster by 20%');
+  assert.equal((await repo.papers.listAll())[0].links[0].hasReview, true);
+});
+
+test('reviews are per project', async () => {
+  const repo = await freshRepo();
+  const p1 = await repo.projects.create({ name: 'Project one' });
+  const p2 = await repo.projects.create({ name: 'Project two' });
+  await repo.papers.saveToProject(p1.id, paper('a'));
+  await repo.papers.saveToProject(p2.id, paper('a'));
+  await repo.papers.saveReview(p1.id, 'a', { status: 'read', notes: 'for project one' });
+  const got = await repo.papers.getWithLinks('a');
+  const link = (id) => got.links.find((l) => l.projectId === id);
+  assert.equal(link(p1.id).review.notes, 'for project one');
+  assert.equal(link(p2.id).review, null);
+  assert.equal(link(p2.id).status, 'unread');
+});
+
+test('saveReview rejects bad input and unsaved papers; getWithLinks returns undefined for unknown ids', async () => {
+  const repo = await freshRepo();
+  const p = await repo.projects.create({ name: 'Project one' });
+  await repo.papers.saveToProject(p.id, paper('a'));
+  await assert.rejects(repo.papers.saveReview(p.id, 'a', { status: 'nope' }), ValidationError);
+  await assert.rejects(repo.papers.saveReview(p.id, 'missing', { status: 'read' }), /not saved in this project/);
+  assert.equal(await repo.papers.getWithLinks('missing'), undefined);
+});
+
+test('links created before status existed are treated as unread', async () => {
+  const repo = await freshRepo();
+  const p = await repo.projects.create({ name: 'Project one' });
+  const tx = repo.db.transaction(['papers', 'projectPapers'], 'readwrite');
+  tx.objectStore('papers').put({ id: 'old', title: 'Old paper', authors: [], year: null, sources: [] });
+  tx.objectStore('projectPapers').add({ id: `${p.id}:old`, projectId: p.id, paperId: 'old', addedAt: '2026-01-01T00:00:00Z' });
+  await finished(tx);
+  assert.equal((await repo.papers.listAll())[0].links[0].status, 'unread');
+  assert.equal((await repo.papers.getWithLinks('old')).links[0].status, 'unread');
+});
+
+test('listByProject exposes status and whether a review exists', async () => {
+  const repo = await freshRepo();
+  const p = await repo.projects.create({ name: 'Project one' });
+  await repo.papers.saveToProject(p.id, paper('a'));
+  assert.deepEqual((await repo.papers.listByProject(p.id)).map((x) => [x.status, x.hasReview]), [['unread', false]]);
+  await repo.papers.saveReview(p.id, 'a', { status: 'reading', notes: 'n' });
+  assert.deepEqual((await repo.papers.listByProject(p.id)).map((x) => [x.status, x.hasReview]), [['reading', true]]);
+});

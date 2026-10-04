@@ -73,3 +73,21 @@ export function validatePaper(input = {}) {
   };
   return { valid: Object.keys(errors).length === 0, errors, values };
 }
+
+export const REVIEW_STATUSES = ['unread', 'reading', 'read'];
+export const REVIEW_FIELDS = ['studyAim', 'methodology', 'participants', 'keyFindings', 'limitations', 'notes'];
+export const REVIEW_MAX = 2000;
+
+/** A structured review of one paper within one project. Every text field is optional; status is required. */
+export function validateReview(input = {}) {
+  const errors = {};
+  const status = REVIEW_STATUSES.includes(input.status) ? input.status : null;
+  if (!status) errors.status = 'Choose a reading status.';
+  const values = { status: status ?? 'unread' };
+  for (const key of REVIEW_FIELDS) {
+    const text = str(input[key]);
+    if (text.length > REVIEW_MAX) errors[key] = `Must be at most ${REVIEW_MAX} characters.`;
+    values[key] = text;
+  }
+  return { valid: Object.keys(errors).length === 0, errors, values };
+}

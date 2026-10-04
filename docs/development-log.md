@@ -1,5 +1,14 @@
 # Development Log
 
+## 2026-10-04: Stage 6 (Library, paper detail, structured review)
+- **Library** (`#/library`): all saved papers across projects with a keyword filter, project and status selects and four sorts. Filtering is a pure function (`js/library.js`, unit-tested). Filter state lives in the URL via `replaceState` (no history entry per keystroke) so reload restores it. The result count is in a `role="status"` region, updated after a short debounce so typing is not announced per keystroke.
+- **Paper detail** (`#/library/:id?tab=review&project=:id`): Overview and Review tabs built to the WAI-ARIA tabs pattern (`js/ui/tabs.js`): `tablist/tab/tabpanel`, roving `tabindex`, Left/Right/Home/End, automatic activation, the active tab stored in the URL. Ids such as `doi:10.1145/3597503.3608128` contain `/`, so they are `encodeURIComponent`-encoded (the router splits before decoding).
+- **Structured review** stored on the existing `projectPapers` link (no schema change): reading status as a **radio group** (three mutually exclusive options, all visible, versus a `<select>`), plus textareas for study aim, methodology, participants/dataset, key findings, limitations and notes. A paper in several projects has one review per project; switching project with unsaved text asks before discarding.
+- Key findings is worded as "what the paper reports, in its own terms" and interpretation goes in notes, continuing the evidence-versus-interpretation separation (formalised in Stage 7).
+- Re-saving a paper from Discover refreshes its metadata but never wipes a review (unit-tested).
+- Bugs found by testing: long unbroken titles overflowed the page heading at 320px (heading sits outside a card) -> `overflow-wrap: anywhere` on `.main`. Three of my own test races (reading values before async re-render) were fixed by waiting on the visible result.
+- Design fixes from screenshots: spacing under the project picker; removed the meaningless "(optional)" label from the filter box.
+
 ## 2026-10-04: Stage 5 (Crossref, merge by DOI, save to project)
 - Second source: `js/api/crossref.js`, normalised into the same Paper shape as OpenAlex. Crossref abstracts are JATS XML, so tags become spaces (otherwise "Abstract" glued onto the first word: caught by a unit test), entities are decoded, and the "Abstract" label is dropped.
 - `js/api/merge.js`: de-duplicates by DOI (fallback: normalised title + year). The preferred source wins field conflicts; gaps are filled from the other (for example OpenAlex's open-access flag plus Crossref's longer abstract). Relevance sort interleaves by rank; newest / most-cited re-sort the merged page.

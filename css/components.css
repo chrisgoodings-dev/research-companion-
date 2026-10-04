@@ -191,3 +191,39 @@ select { appearance: auto; }
 .section-gap { margin-top: var(--space-6); }
 .saved-paper__title { font-weight: 700; margin-bottom: var(--space-1); }
 .saved-paper__meta { color: var(--text-muted); font-size: var(--fs-sm); margin: 0; }
+
+/* ---- Library, tabs, paper detail ---- */
+.chips { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.chip { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2); padding: 0.25rem 0.75rem; border: 1px solid var(--border); border-radius: 999px; background: var(--surface-raised); font-size: var(--fs-sm); }
+.chip__name { font-weight: 700; }
+.chip__status { color: var(--text-muted); }
+
+.tabs__list { display: flex; gap: var(--space-1); border-bottom: 2px solid var(--border); margin-bottom: var(--space-4); overflow-x: auto; }
+.tabs__tab {
+  min-height: 2.75rem; padding: var(--space-2) var(--space-5);
+  border: 0; border-bottom: 4px solid transparent; border-radius: var(--radius) var(--radius) 0 0;
+  background: none; color: var(--text-muted); font: inherit; font-weight: 700; cursor: pointer; white-space: nowrap;
+}
+.tabs__tab:hover { color: var(--text); background: var(--surface); }
+/* The selected tab is marked by weight, colour AND an underline bar (not colour alone) */
+.tabs__tab[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); background: var(--surface); }
+.tabs__panel[hidden] { display: none; }
+
+.facts { display: grid; gap: var(--space-2); margin: 0 0 var(--space-5); }
+.facts__row { display: grid; gap: 0.1rem var(--space-4); }
+.facts dt { font-weight: 700; color: var(--text-muted); font-size: var(--fs-sm); }
+.facts dd { margin: 0; }
+@media (min-width: 40rem) { .facts__row { grid-template-columns: 9rem 1fr; } }
+.btn--link { padding: 0; }
+.btn--link a { display: inline-flex; align-items: center; min-height: 2.5rem; padding: var(--space-1) var(--space-3); text-decoration: none; font-weight: 600; }
+
+.radio-group { margin: 0; padding: var(--space-3) var(--space-4); border: 1px solid var(--border); border-radius: var(--radius); display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-5); }
+.radio-group legend { padding: 0 var(--space-2); font-weight: 700; }
+.radio { display: flex; align-items: center; gap: var(--space-2); }
+.radio input { width: 1.4rem; height: 1.4rem; margin: 0; accent-color: var(--accent); }
+.radio label { min-height: 2.75rem; display: flex; align-items: center; font-weight: 600; }
+.review__saved, .review__project { color: var(--text-muted); font-size: var(--fs-sm); margin: 0; }
+.review__project { margin-bottom: var(--space-4); }
+.lib-item .chips { margin-top: var(--space-3); }
+
+#panel-review > .field { margin-bottom: var(--space-4); }

@@ -7,8 +7,7 @@ import { showToast } from '../ui/toast.js';
 import { confirmAction } from '../ui/confirm.js';
 import { formatAuthors } from '../api/paper.js';
 
-const date = (iso) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+import { formatDate as date, plural, STATUS_LABEL } from '../ui/format.js';
 
 const projectFields = (prefix, p = {}) =>
   field({ id: `${prefix}-name`, label: 'Project name', hint: `${LIMITS.projectName.min} to ${LIMITS.projectName.max} characters, for example "AI-assisted coding and productivity".`, value: p.name ?? '', required: true, minlength: LIMITS.projectName.min, maxlength: LIMITS.projectName.max, counter: true }) +
@@ -118,7 +117,8 @@ async function mountDetail(outlet, repo, id, ctx) {
             <li class="card saved-paper">
               <p class="saved-paper__title">${p.url ? `<a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">${esc(p.title)}<span class="visually-hidden"> (opens in a new tab)</span></a>` : esc(p.title)}</p>
               <p class="saved-paper__meta">${esc(formatAuthors(p.authors, 3))}${p.year ? ` · ${p.year}` : ''}${p.venue ? ` · ${esc(p.venue)}` : ''}</p>
-              <div class="actions"><button type="button" class="btn btn--danger-outline btn--small" data-remove-paper="${esc(p.id)}">Remove<span class="visually-hidden">: ${esc(p.title)}</span></button></div>
+              <p class="saved-paper__meta">${STATUS_LABEL[p.status] ?? 'Unread'}${p.hasReview ? ' · Reviewed' : ''}</p>
+              <div class="actions"><a class="btn btn--secondary btn--small" href="#/library/${encodeURIComponent(p.id)}?tab=review&amp;project=${esc(id)}">Review<span class="visually-hidden">: ${esc(p.title)}</span></a><button type="button" class="btn btn--danger-outline btn--small" data-remove-paper="${esc(p.id)}">Remove<span class="visually-hidden">: ${esc(p.title)}</span></button></div>
             </li>`).join('')}</ul>` : '<p class="card empty-state">No papers saved yet. Find some in <a href="#/discover">Discover</a>.</p>'}
         </section>
 
