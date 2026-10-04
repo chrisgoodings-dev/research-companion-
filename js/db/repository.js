@@ -239,11 +239,49 @@ export function createRepository(db) {
     },
   };
 
+  const ALL_STORES = ['projects', 'researchQuestions', 'papers', 'projectPapers', 'evidenceNotes'];
+
+  /** Everything, as plain arrays (for backup and CSV export). */
+  async function exportAll() {
+    const tx = db.transaction(ALL_STORES, 'readonly');
+    const lists = await Promise.all(ALL_STORES.map((n) => wrap(tx.objectStore(n).getAll())));
+    return Object.fromEntries(ALL_STORES.map((n, i) => [n, lists[i]]));
+  }
+
+  /** Apply already-validated backup data in ONE transaction: it all happens or none of it does.
+   *  mode 'replace' empties the database first; 'merge' adds records and keeps existing ones with the same id. */
+  async function importData(data, { mode = 'merge' } = {}) {
+    if (!['merge', 'replace'].includes(mode)) throw new Error('Unknown import mode.');
+    const tx = db.transaction(ALL_STORES, 'readwrite');
+    const done = finished(tx);
+    done.catch(() => {}); // surfaced through the awaits below; avoids an unhandled rejection if we abort
+    const added = {};
+    const skipped = {};
+    try {
+      if (mode === 'replace') await Promise.all(ALL_STORES.map((n) => wrap(tx.objectStore(n).clear())));
+      for (const name of ALL_STORES) {
+        const os = tx.objectStore(name);
+        added[name] = 0;
+        skipped[name] = 0;
+        for (const record of data[name]) {
+          if (mode === 'merge' && (await wrap(os.getKey(record.id))) !== undefined) { skipped[name] += 1; continue; }
+          await wrap(os.add(record));
+          added[name] += 1;
+        }
+      }
+    } catch (err) {
+      try { tx.abort(); } catch { /* already finished */ }
+      throw err;
+    }
+    await done;
+    return { added, skipped };
+  }
+
   async function counts() {
     const names = ['projects', 'researchQuestions', 'papers', 'evidenceNotes'];
     const values = await Promise.all(names.map((n) => wrap(store(n).count())));
     return Object.fromEntries(names.map((n, i) => [n, values[i]]));
   }
 
-  return { projects, questions, papers, evidence, counts, db };
+  return { projects, questions, papers, evidence, counts, exportAll, importData, db };
 }

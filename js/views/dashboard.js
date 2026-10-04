@@ -1,4 +1,6 @@
 import { getRepo } from '../db/index.js';
+import { lastBackup } from '../ui/download.js';
+import { formatDate } from '../ui/format.js';
 
 const TILES = [
   ['projects', 'Research projects'],
@@ -33,12 +35,15 @@ export const dashboardRoute = {
       </section>
       <section class="card" aria-labelledby="status-h">
         <h2 id="status-h">Build status</h2>
-        <p><span class="badge">Stage 8 of 12</span></p>
-        <p>Projects, paper search, the library, structured reviews and evidence records are working. The evidence matrix is ready; export and import come next.</p>
+        <p><span class="badge">Stage 9 of 12</span></p>
+        <p id="backup-note" class="review__saved"></p>
+        <p>Projects, paper search, the library, structured reviews and evidence records are working. The matrix, backup and CSV export are ready; the progress view comes next.</p>
       </section>
     </div>`,
   async mount(outlet) {
     const counts = await (await getRepo()).counts();
+    const last = lastBackup();
+    outlet.querySelector('#backup-note').innerHTML = last ? `Last backup: ${formatDate(last)}. <a href="#/backup">Back up now</a>` : 'No backup yet. <a href="#/backup">Back up your data</a>';
     for (const [key] of TILES) outlet.querySelector(`[data-stat="${key}"]`).textContent = counts[key];
   },
 };

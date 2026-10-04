@@ -104,8 +104,8 @@
 .sheet__link:hover { border-color: var(--accent); color: var(--accent); }
 
 /* ---- Forms ---- */
-.form { display: grid; gap: var(--space-4); }
-.field { display: grid; gap: var(--space-1); }
+.form { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }   /* minmax(0,…): a wide child (file chooser, long word) must not stretch the column past the screen */
+.field { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1); }
 .field__label { font-weight: 700; }
 .field__req { font-weight: 400; color: var(--text-muted); font-size: var(--fs-sm); }
 .field__hint { margin: 0; color: var(--text-muted); font-size: var(--fs-sm); }
@@ -140,7 +140,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px
 .actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-3); }
 
 /* ---- Project + research question lists ---- */
-.stack { display: grid; gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
+.stack { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
 .project-card__title { font-size: var(--fs-lg); margin-bottom: var(--space-2); }
 .project-card__desc { margin-bottom: var(--space-2); }
 .project-card__meta { color: var(--text-muted); font-size: var(--fs-sm); margin: 0; }
@@ -293,3 +293,8 @@ select { appearance: auto; }
 .key__questions dt { font-weight: 800; }
 .key__questions dd { margin: 0; }
 @media (min-width: 40rem) { .key__questions > div { grid-template-columns: 4rem 1fr; } }
+
+/* ---- Backup page ---- */
+.csv-matrix { margin-top: var(--space-5); max-width: 28rem; }
+input[type="file"] { width: 100%; max-width: 100%; padding: var(--space-3); border: 2px dashed var(--control-border); border-radius: var(--radius); background: var(--surface); color: var(--text); font: inherit; }
+#rs-result .card { margin-top: var(--space-4); }

@@ -105,3 +105,10 @@
 @media (min-width: 64rem) {
   .two-col { grid-template-columns: 2fr 1fr; align-items: start; }
 }
+
+/* Footer link in the sidebar (desktop only; on phones the Menu sheet links to it) */
+.nav .nav__footer { display: none; }   /* .nav prefix: component styles load later and would otherwise win */
+@media (min-width: 48rem) {
+  .nav { display: flex; flex-direction: column; }
+  .nav .nav__footer { display: flex; margin-top: auto; border-top: 1px solid var(--graphite-700); border-radius: 0; padding-top: var(--space-4); padding-bottom: var(--space-4); }
+}
