@@ -100,3 +100,58 @@
   color: var(--text); font-weight: 600; text-decoration: none;
 }
 .sheet__link:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ---- Forms ---- */
+.form { display: grid; gap: var(--space-4); }
+.field { display: grid; gap: var(--space-1); }
+.field__label { font-weight: 700; }
+.field__req { font-weight: 400; color: var(--text-muted); font-size: var(--fs-sm); }
+.field__hint { margin: 0; color: var(--text-muted); font-size: var(--fs-sm); }
+.field__counter { margin: 0; color: var(--text-muted); font-size: var(--fs-sm); text-align: right; }
+
+input[type="text"], input[type="url"], input[type="search"], input[type="number"], textarea, select {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: var(--space-2) var(--space-3);
+  border: 2px solid var(--control-border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+textarea { resize: vertical; line-height: 1.5; }
+input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; border-color: var(--focus); }
+/* Invalid state is shown by a thicker danger border AND an icon + text message (never colour alone: WCAG 1.4.1) */
+[aria-invalid="true"], [aria-invalid="true"]:focus-visible { border-color: var(--danger); border-width: 3px; }
+.field__error { margin: 0; color: var(--danger); font-weight: 700; font-size: var(--fs-sm); }
+.field__error::before { content: "⚠ "; }
+.form-status { margin: 0; color: var(--danger); font-weight: 600; }
+.form-status:empty { display: none; }
+
+/* ---- Buttons (extras) ---- */
+.btn--small { min-height: 2.5rem; padding: var(--space-1) var(--space-3); font-size: var(--fs-sm); }
+.btn--danger { background: var(--danger); color: var(--on-accent); }
+.btn--danger:hover { filter: brightness(1.12); }
+.btn--danger-outline { background: transparent; color: var(--danger); border-color: var(--danger); }
+.btn--danger-outline:hover { background: var(--surface-raised); }
+.btn:disabled { opacity: 0.6; cursor: progress; }
+.actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-3); }
+
+/* ---- Project + research question lists ---- */
+.stack { display: grid; gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
+.project-card__title { font-size: var(--fs-lg); margin-bottom: var(--space-2); }
+.project-card__desc { margin-bottom: var(--space-2); }
+.project-card__meta { color: var(--text-muted); font-size: var(--fs-sm); margin: 0; }
+.rq-list { display: grid; gap: var(--space-3); margin: 0 0 var(--space-5); padding: 0; list-style: none; }
+.rq__row { display: flex; gap: var(--space-3); align-items: flex-start; }
+.rq__num { flex: none; color: var(--accent); border-color: var(--accent); }
+.rq__text { margin: 0; }
+.danger-zone { border-color: var(--danger); }
+
+.breadcrumb ol { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 0 0 var(--space-4); padding: 0; list-style: none; font-size: var(--fs-sm); }
+.breadcrumb li + li::before { content: "/"; margin-right: var(--space-2); color: var(--text-muted); }
+
+/* ---- Toasts: top of the screen so they never cover form buttons ---- */
+.toasts { position: fixed; z-index: 50; top: var(--space-3); left: var(--space-4); right: var(--space-4); display: grid; gap: var(--space-2); justify-items: center; pointer-events: none; }
+.toast { padding: var(--space-3) var(--space-4); border-radius: var(--radius); background: var(--graphite-900); color: var(--teal-50); border: 1px solid var(--teal-300); box-shadow: 0 4px 16px rgb(0 0 0 / 0.3); font-weight: 600; }
+@media (min-width: 48rem) { .toasts { left: auto; right: var(--space-6); justify-items: end; } }

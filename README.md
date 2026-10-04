@@ -17,7 +17,7 @@ npm run contrast     # WCAG contrast ratios for the design tokens
 
 ## Stack
 Plain HTML, CSS and ES-module JavaScript. No framework and no build step, so it deploys as static files.
-Planned: OpenAlex and Crossref APIs (Stage 4-5), IndexedDB for research data (Stage 3), localStorage for the theme.
+IndexedDB holds research data; localStorage holds the theme. Planned: OpenAlex and Crossref APIs (Stages 4-5).
 
 ## Structure
 ```

@@ -1,29 +1,24 @@
-/** Dashboard. Counts are placeholders until IndexedDB lands in Stage 3. */
-const stats = [
-  { label: 'Research projects', value: 0 },
-  { label: 'Research questions', value: 0 },
-  { label: 'Saved papers', value: 0 },
-  { label: 'Evidence records', value: 0 },
+import { getRepo } from '../db/index.js';
+
+const TILES = [
+  ['projects', 'Research projects'],
+  ['researchQuestions', 'Research questions'],
+  ['papers', 'Saved papers'],
+  ['evidenceNotes', 'Evidence records'],
 ];
 
-export function dashboardView() {
-  const tiles = stats.map((s) => `
-      <li class="card stat">
-        <span class="stat__value">${s.value}</span>
-        <span class="stat__label">${s.label}</span>
-      </li>`).join('');
-
-  return `
+export const dashboardRoute = {
+  title: 'Dashboard',
+  render: () => `
     <div class="page-header">
       <h1>Dashboard</h1>
       <p>Your research evidence workspace: discover papers, capture what they report, and relate it to your research questions.</p>
     </div>
-
     <section aria-labelledby="stats-h">
       <h2 id="stats-h" class="visually-hidden">Workspace summary</h2>
-      <ul class="card-grid">${tiles}</ul>
+      <ul class="card-grid" id="stats">${TILES.map(([k, label]) => `
+        <li class="card stat"><span class="stat__value" data-stat="${k}">–</span><span class="stat__label">${label}</span></li>`).join('')}</ul>
     </section>
-
     <div class="two-col">
       <section class="card" aria-labelledby="start-h">
         <h2 id="start-h">Get started</h2>
@@ -34,12 +29,16 @@ export function dashboardView() {
           <li>Record evidence and relate it to a question.</li>
           <li>Review the <strong>Matrix</strong> to see where the evidence agrees or conflicts.</li>
         </ol>
+        <a class="btn btn--primary" href="#/projects">Go to Projects</a>
       </section>
       <section class="card" aria-labelledby="status-h">
         <h2 id="status-h">Build status</h2>
-        <p><span class="badge">Stage 2 of 12</span></p>
-        <p>App shell, navigation and routing are in place. Data storage comes next.</p>
-        <a class="btn btn--primary" href="#/discover">Go to Discover</a>
+        <p><span class="badge">Stage 3 of 12</span></p>
+        <p>Projects and research questions are saved in your browser (IndexedDB). Paper search comes next.</p>
       </section>
-    </div>`;
-}
+    </div>`,
+  async mount(outlet) {
+    const counts = await (await getRepo()).counts();
+    for (const [key] of TILES) outlet.querySelector(`[data-stat="${key}"]`).textContent = counts[key];
+  },
+};

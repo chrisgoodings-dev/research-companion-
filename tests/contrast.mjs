@@ -31,6 +31,12 @@ const pairs = [
   ['Sidebar: muted nav text on active graphite-700', '#a9c4c7', '#23363b', 4.5],
   ['Sidebar: active text on graphite-700', '#e2fbf8', '#23363b', 4.5],
   ['Sidebar: accent bar teal-300 on graphite-900 (non-text)', '#5eead4', '#0d1b1e', 3],
+  ['Light: error text (danger) on surface', '#a11d33', '#ffffff', 4.5],
+  ['Light: error text (danger) on canvas', '#a11d33', '#f5f7fa', 4.5],
+  ['Light: danger button text on danger', '#ffffff', '#a11d33', 4.5],
+  ['Dark: error text on graphite-800', '#ff9aa9', '#1a2a2e', 4.5],
+  ['Dark: danger button text on danger', '#0d1b1e', '#ff9aa9', 4.5],
+  ['Toast: text on graphite-900', '#e2fbf8', '#0d1b1e', 4.5],
   ['REJECTED: white on teal-500 (why teal-700 is used)', '#ffffff', '#14b8a6', 4.5],
   ['REJECTED: teal-500 text on canvas', '#14b8a6', '#f5f7fa', 4.5],
 ];
