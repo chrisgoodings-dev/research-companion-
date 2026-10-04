@@ -1,0 +1,102 @@
+/* Components: small, class-based, low-specificity (BEM-style naming). */
+
+/* Navigation links */
+.nav__link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 2.75rem;                 /* comfortable touch target (WCAG 2.5.8) */
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: var(--radius);
+  background: none;
+  color: var(--nav-muted);
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.nav__link:hover { color: var(--nav-text); background: var(--graphite-800); }
+.nav__link[aria-current="page"] { color: var(--nav-text); background: var(--nav-active-bg); box-shadow: inset 3px 0 0 var(--nav-accent); }
+.nav__link:focus-visible { outline-color: var(--teal-300); }
+.nav__icon { width: 1.4rem; height: 1.4rem; flex: none; fill: currentColor; }
+/* Mobile: icon above label */
+.nav__link { flex-direction: column; justify-content: center; gap: 0.1rem; font-size: 0.75rem; text-align: center; border-radius: 0; }
+.nav__link[aria-current="page"] { box-shadow: inset 0 3px 0 var(--nav-accent); }
+@media (min-width: 48rem) {
+  .nav__link { flex-direction: row; justify-content: flex-start; gap: var(--space-3); font-size: var(--fs-sm); text-align: left; border-radius: var(--radius); }
+  .nav__link[aria-current="page"] { box-shadow: inset 3px 0 0 var(--nav-accent); }
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
+  min-height: 2.75rem;
+  padding: var(--space-2) var(--space-4);
+  border: 2px solid transparent;
+  border-radius: var(--radius);
+  font: inherit; font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.btn--primary { background: var(--accent); color: var(--on-accent); }
+.btn--primary:hover { background: var(--accent-strong); color: var(--on-accent); }
+.btn--secondary { background: transparent; color: var(--accent); border-color: var(--accent); }
+.btn--secondary:hover { background: var(--surface); }
+.btn--ghost { background: transparent; color: inherit; border-color: currentColor; font-size: var(--fs-sm); min-height: 2.5rem; }
+.topbar .btn--ghost { color: var(--nav-text); }
+@media (min-width: 48rem) { .topbar .btn--ghost { color: var(--text); } }
+
+/* Cards and stat tiles */
+.card {
+  padding: var(--space-5);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.card > :last-child { margin-bottom: 0; }
+
+.stat { display: flex; flex-direction: column; gap: var(--space-1); }
+.stat__value { font-size: var(--fs-xl); font-weight: 800; line-height: 1; color: var(--accent); }
+.stat__label { color: var(--text-muted); font-size: var(--fs-sm); font-weight: 600; }
+
+.page-header { margin-bottom: var(--space-5); }
+.page-header p { color: var(--text-muted); margin-bottom: 0; }
+
+.badge {
+  display: inline-block;
+  padding: 0.1rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.empty-state { text-align: center; padding: var(--space-6) var(--space-4); }
+.empty-state p { margin-inline: auto; color: var(--text-muted); }
+
+.steps { margin: 0; padding-left: var(--space-5); }
+.steps li { margin-bottom: var(--space-2); }
+
+/* "More" sheet (native <dialog>: focus trap and Esc handling come free) */
+.sheet {
+  width: min(24rem, calc(100% - 2rem));
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+}
+.sheet::backdrop { background: rgb(9 20 22 / 0.6); }
+.sheet__title { margin-bottom: var(--space-3); }
+.sheet__list { margin: 0 0 var(--space-4); padding: 0; list-style: none; display: grid; gap: var(--space-2); }
+.sheet__link {
+  display: block; padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  color: var(--text); font-weight: 600; text-decoration: none;
+}
+.sheet__link:hover { border-color: var(--accent); color: var(--accent); }

@@ -1,0 +1,17 @@
+{
+  "name": "se-research-hub",
+  "version": "0.1.0",
+  "private": true,
+  "description": "SE Research Hub: a research evidence workspace (MSc Web Technologies, Assessment 3).",
+  "type": "module",
+  "scripts": {
+    "start": "npx http-server . -p 8080 -c-1",
+    "test": "node --test \"tests/unit/**/*.test.js\"",
+    "test:e2e": "node tests/e2e/smoke.mjs",
+    "contrast": "node tests/contrast.mjs"
+  },
+  "devDependencies": {
+    "axe-core": "^4.13.0",
+    "playwright-core": "^1.56.1"
+  }
+}
