@@ -5,7 +5,8 @@ import { libraryRoute } from './library.js';
 import { evidenceRoute } from './evidence.js';
 import { matrixRoute } from './matrix.js';
 import { backupRoute } from './backup.js';
-import { placeholderView } from './placeholder.js';
+import { progressRoute } from './progress.js';
+import { notFoundRoute } from './notfound.js';
 
 export const routes = {
   dashboard: dashboardRoute,
@@ -14,7 +15,7 @@ export const routes = {
   library: libraryRoute,
   evidence: evidenceRoute,
   matrix: matrixRoute,
-  progress: { title: 'Progress', render: () => placeholderView({ title: 'Progress', summary: 'How far your review has got.', stage: 'Stage 10' }) },
+  progress: progressRoute,
   backup: backupRoute,
-  notFound: { title: 'Page not found', render: () => placeholderView({ title: 'Page not found', summary: 'That address does not match a page in the app.', stage: 'n/a' }) },
+  notFound: notFoundRoute,
 };

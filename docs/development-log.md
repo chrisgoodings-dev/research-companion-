@@ -1,5 +1,15 @@
 # Development Log
 
+## 2026-10-04: Stage 10 (Progress view and polish)
+- **Progress** (`#/progress`, logic in the pure, unit-tested `js/progress.js`): per project, reading progress (native `<progress>` with value/max, named by its label, with the same fact stated in text and a status breakdown), a written "What to do next" list (unread papers, read-but-no-evidence papers, questions with no evidence or resting on one paper, conflicts), per-question coverage ("evidence from 2 of 5 papers") with relationship counts, and to-do lists linking to each paper's Review tab. Charts are never the only carrier of meaning.
+- **Definition fix found by testing**: a paper counted as "Reviewed" when only its reading status had been set. "Written review" now means at least one review field contains text (whitespace does not count); status is still stored and shown.
+- **Finished-product wording**: removed the dashboard's "Build status / Stage n of 12" card and the "not built yet" placeholder (the unknown-address page is now a proper not-found page with ways back; the address shown is escaped).
+- **Resilience**: if IndexedDB is unavailable (private mode, policy) pages keep their heading and show an explanation instead of crashing; Discover still searches and says saving is unavailable (tested by removing `indexedDB` before the page loads).
+- **Print stylesheet** (`css/print.css`): no navigation or buttons, the matrix printed in full instead of in a scrolling region, black on white, external link addresses shown, every tab printed. Checked with print media emulation.
+- **Forced-colours support** (Windows High Contrast): system colours for the selected tab, badges, buttons and focus; reduced motion switches smooth scrolling off (both verified through media emulation).
+- Progress bars use explicit colours and a bordered track instead of the browser default, so fill and track contrast (WCAG 1.4.11; added to the contrast script).
+- Spacing fixes from reviewing screenshots (cards under filter forms, sub-headings, last button).
+
 ## 2026-10-04: Stage 9 (Backup, restore, CSV export)
 - **Why**: research data lives only in the browser (IndexedDB), so a backup is the only protection against cleared site data or a new device.
 - **JSON backup** (`js/backup.js`): one envelope `{ app, version, exportedAt, data: { five stores } }`, downloaded with a Blob and a temporary `<a download>` (no server).

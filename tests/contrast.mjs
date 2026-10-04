@@ -52,6 +52,8 @@ const pairs = [
   ['Dark: Contextual badge on raised graphite-700', '#5eead4', '#23363b', 4.5],
   ['Dark: No-evidence badge on raised graphite-700', '#a9c4c7', '#23363b', 4.5],
   ['Dark: muted label on evidence block (graphite-800)', '#a9c4c7', '#1a2a2e', 4.5],
+  ['Light: progress fill (accent) vs track (non-text)', '#0f766e', '#ffffff', 3],
+  ['Dark: progress fill (accent) vs track graphite-700 (non-text)', '#5eead4', '#23363b', 3],
   ['REJECTED: white on teal-500 (why teal-700 is used)', '#ffffff', '#14b8a6', 4.5],
   ['REJECTED: teal-500 text on canvas', '#14b8a6', '#f5f7fa', 4.5],
 ];

@@ -230,3 +230,17 @@ test('listByProject exposes status and whether a review exists', async () => {
   await repo.papers.saveReview(p.id, 'a', { status: 'reading', notes: 'n' });
   assert.deepEqual((await repo.papers.listByProject(p.id)).map((x) => [x.status, x.hasReview]), [['reading', true]]);
 });
+
+test('a status-only review is not counted as a written review', async () => {
+  const repo = await freshRepo();
+  const p = await repo.projects.create({ name: 'Project one' });
+  await repo.papers.saveToProject(p.id, paper('a'));
+  await repo.papers.saveReview(p.id, 'a', { status: 'read' });
+  assert.equal((await repo.papers.listByProject(p.id))[0].hasReview, false);
+  assert.equal((await repo.papers.listAll())[0].links[0].hasReview, false);
+  assert.equal((await repo.papers.listByProject(p.id))[0].status, 'read', 'but the status is kept');
+  await repo.papers.saveReview(p.id, 'a', { status: 'read', notes: '   ' });
+  assert.equal((await repo.papers.listByProject(p.id))[0].hasReview, false, 'whitespace-only text does not count');
+  await repo.papers.saveReview(p.id, 'a', { status: 'read', notes: 'Something' });
+  assert.equal((await repo.papers.listByProject(p.id))[0].hasReview, true);
+});

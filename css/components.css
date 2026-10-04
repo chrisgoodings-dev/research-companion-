@@ -298,3 +298,19 @@ select { appearance: auto; }
 .csv-matrix { margin-top: var(--space-5); max-width: 28rem; }
 input[type="file"] { width: 100%; max-width: 100%; padding: var(--space-3); border: 2px dashed var(--control-border); border-radius: var(--radius); background: var(--surface); color: var(--text); font: inherit; }
 #rs-result .card { margin-top: var(--space-4); }
+
+/* ---- Progress, meters, misc ---- */
+.meter { margin: 0 0 var(--space-3); }
+.meter__label { margin: 0 0 var(--space-1); font-weight: 700; }
+/* Explicit colours (not the browser default) so the filled part clearly contrasts with the track (WCAG 1.4.11) */
+progress { appearance: none; -webkit-appearance: none; width: 100%; height: 1.25rem; border: 2px solid var(--control-border); border-radius: 999px; background: var(--surface-raised); overflow: hidden; accent-color: var(--accent); }
+progress::-webkit-progress-bar { background: var(--surface-raised); }
+progress::-webkit-progress-value { background: var(--accent); border-radius: 999px; }
+progress::-moz-progress-bar { background: var(--accent); border-radius: 999px; }
+.steps--plain { list-style: none; padding-left: 0; }
+.actions--center { justify-content: center; }
+code { padding: 0.1rem 0.4rem; border-radius: 0.3rem; background: var(--surface-raised); font-size: 0.9em; }
+
+/* spacing: filter/picker cards sit apart from what follows; sub-headings inside cards get air */
+#progress-form, #matrix-form, #ev-filters, #lib-filters { margin-bottom: var(--space-4); }
+.card > h3:not(:first-child) { margin-top: var(--space-4); }

@@ -16,6 +16,7 @@ export const dashboardRoute = {
       <h1>Dashboard</h1>
       <p>Your research evidence workspace: discover papers, capture what they report, and relate it to your research questions.</p>
     </div>
+    <div id="view-body">
     <section aria-labelledby="stats-h">
       <h2 id="stats-h" class="visually-hidden">Workspace summary</h2>
       <ul class="card-grid" id="stats">${TILES.map(([k, label]) => `
@@ -33,12 +34,16 @@ export const dashboardRoute = {
         </ol>
         <a class="btn btn--primary" href="#/projects">Go to Projects</a> <a class="btn btn--secondary" href="#/discover">Search papers</a> <a class="btn btn--secondary" href="#/matrix">Evidence matrix</a>
       </section>
-      <section class="card" aria-labelledby="status-h">
-        <h2 id="status-h">Build status</h2>
-        <p><span class="badge">Stage 9 of 12</span></p>
+      <section class="card" aria-labelledby="glance-h">
+        <h2 id="glance-h">At a glance</h2>
+        <ul class="steps steps--plain">
+          <li><a href="#/matrix">Evidence matrix</a>: see where papers agree or conflict</li>
+          <li><a href="#/progress">Progress</a>: what to read and record next</li>
+          <li><a href="#/evidence">Evidence</a>: everything you have recorded</li>
+        </ul>
         <p id="backup-note" class="review__saved"></p>
-        <p>Projects, paper search, the library, structured reviews and evidence records are working. The matrix, backup and CSV export are ready; the progress view comes next.</p>
       </section>
+    </div>
     </div>`,
   async mount(outlet) {
     const counts = await (await getRepo()).counts();

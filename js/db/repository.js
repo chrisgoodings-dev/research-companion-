@@ -4,6 +4,9 @@ import { assertValid, validateProject, validateQuestion, validatePaper, validate
 const newId = () => globalThis.crypto.randomUUID();
 const now = () => new Date().toISOString();
 
+/** A review counts as "written" only if at least one field has text (setting just the reading status is not a review). */
+const reviewHasText = (review) => Boolean(review) && Object.values(review).some((v) => typeof v === 'string' && v.trim() !== '');
+
 /** All data access goes through here, so views never touch IndexedDB directly. */
 export function createRepository(db) {
   const store = (name, mode = 'readonly') => db.transaction(name, mode).objectStore(name);
@@ -124,7 +127,7 @@ export function createRepository(db) {
       const links = await wrap(store('projectPapers').index('projectId').getAll(projectId));
       const rows = await Promise.all(links.map(async (l) => {
         const paper = await wrap(store('papers').get(l.paperId));
-        return paper ? { ...paper, addedAt: l.addedAt, status: l.status ?? 'unread', hasReview: Boolean(l.review) } : null;
+        return paper ? { ...paper, addedAt: l.addedAt, status: l.status ?? 'unread', hasReview: reviewHasText(l.review) } : null;
       }));
       return rows.filter(Boolean).sort((a, b) => b.addedAt.localeCompare(a.addedAt));
     },
@@ -134,7 +137,7 @@ export function createRepository(db) {
       const [all, links] = await Promise.all([wrap(store('papers').getAll()), wrap(store('projectPapers').getAll())]);
       const byPaper = new Map();
       for (const l of links) {
-        const entry = { projectId: l.projectId, addedAt: l.addedAt, status: l.status ?? 'unread', hasReview: Boolean(l.review), reviewedAt: l.reviewedAt ?? null };
+        const entry = { projectId: l.projectId, addedAt: l.addedAt, status: l.status ?? 'unread', hasReview: reviewHasText(l.review), reviewedAt: l.reviewedAt ?? null };
         byPaper.set(l.paperId, [...(byPaper.get(l.paperId) ?? []), entry]);
       }
       return all
