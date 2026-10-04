@@ -31,7 +31,8 @@ css/                tokens (theme) → base → layout (mobile-first) → compon
 js/                 main, router (hash routes), ui helpers, views
 tests/              unit, e2e (Playwright + axe-core), contrast checker
 docs/               build plan, development log, test screenshots
+docs/design/        wireframes, site map, use cases, data flow, threat model, sequence diagrams (npm run design)
 ```
 
 ## Status
-All twelve stages of `docs/build-plan.md` are complete. History and decisions: `docs/development-log.md`. Test evidence: `docs/testing/`. Deployment: `docs/deployment.md`. Material for the written evaluation: `docs/assessment/writeup-evidence.md`.
+All twelve stages of `docs/build-plan.md` are complete. History and decisions: `docs/development-log.md`. Test evidence: `docs/testing/`. Deployment: `docs/deployment.md`. Design documentation: `docs/design/README.md`. Material for the written evaluation: `docs/assessment/writeup-evidence.md`.

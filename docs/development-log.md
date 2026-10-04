@@ -116,3 +116,10 @@
 
 ### AI use (for the AITS declaration)
 - AI assistant (Claude) generated the initial scaffold, tests and plan under my direction. Record here what I reviewed, changed and wrote myself.
+
+## 2026-10-04: Design documentation
+- Added `docs/design/`: wireframes (15 pages/states, desktop and phone, plus overlays), site map and navigation, use cases (UC1-UC15), data flow diagrams (levels 0, 1, 2 and ER model), threat model (trust boundaries, misuse cases, attack trees, STRIDE register T01-T17) and sequence diagrams that capture every API call (OpenAlex, Crossref, IndexedDB).
+- Diagrams are Mermaid in the Markdown, rendered to SVG/PNG by `npm run diagrams`; wireframes are generated SVG/PNG from `scripts/wireframe-*.mjs` (`npm run wireframes`). `npm run design` runs both.
+- `npm run design:docx` builds a single Word version (`docs/design/SE-Research-Hub-Design-Documentation.docx`). Its XML and image count were checked, but it has not been opened in Word or rendered, because LibreOffice would not load any file in this container. Open it in Word and check page layout before relying on it.
+- Residual risks are documented honestly in the threat model (shared github.io origin, no frame-ancestors on static hosting, user-owned backups, public contact email).
+- AI use: the diagrams and documents were drafted by the AI assistant from the built code; check them against the app before citing them.
