@@ -7,7 +7,7 @@
   "scripts": {
     "start": "npx http-server . -p 8080 -c-1",
     "test": "node --test \"tests/unit/**/*.test.js\"",
-    "test:e2e": "node tests/e2e/smoke.mjs && node tests/e2e/projects.mjs && node tests/e2e/discover.mjs && node tests/e2e/save.mjs && node tests/e2e/library.mjs && node tests/e2e/evidence.mjs",
+    "test:e2e": "node tests/e2e/smoke.mjs && node tests/e2e/projects.mjs && node tests/e2e/discover.mjs && node tests/e2e/save.mjs && node tests/e2e/library.mjs && node tests/e2e/evidence.mjs && node tests/e2e/matrix.mjs",
     "contrast": "node tests/contrast.mjs"
   },
   "devDependencies": {

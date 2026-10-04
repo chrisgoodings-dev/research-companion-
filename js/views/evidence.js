@@ -47,6 +47,7 @@ export const evidenceRoute = {
       q: q.get('q') ?? '',
       project: projects.some((p) => p.id === q.get('project')) ? q.get('project') : 'all',
       question: rq.has(q.get('rq')) ? q.get('rq') : 'all',
+      paper: Object.hasOwn(titles, q.get('paper')) ? q.get('paper') : 'all',
       relationship: RELATIONSHIPS.includes(q.get('rel')) ? q.get('rel') : 'any',
       tag: tags.includes(q.get('tag')) ? q.get('tag') : 'any',
     };
@@ -64,6 +65,7 @@ export const evidenceRoute = {
         <div class="filters__grid">
           ${select('ef-project', 'Project', `<option value="all">All projects</option>${projects.map((p) => `<option value="${esc(p.id)}"${p.id === state.project ? ' selected' : ''}>${esc(p.name)}</option>`).join('')}`)}
           <div class="field" id="ef-question-wrap"></div>
+          ${select('ef-paper', 'Paper', `<option value="all">All papers</option>${[...new Set(records.map((e) => e.paperId))].map((id) => `<option value="${esc(id)}"${id === state.paper ? ' selected' : ''}>${esc(titles[id] ?? 'Unknown paper')}</option>`).join('')}`)}
           ${select('ef-rel', 'Relationship', `<option value="any">Any relationship</option>${RELATIONSHIPS.map((r) => `<option value="${r}"${r === state.relationship ? ' selected' : ''}>${REL_LABEL[r]}</option>`).join('')}`)}
           ${select('ef-tag', 'Tag', `<option value="any">Any tag</option>${tags.map((t) => `<option value="${esc(t)}"${t === state.tag ? ' selected' : ''}>${esc(t)}</option>`).join('')}`)}
         </div>
@@ -95,9 +97,9 @@ export const evidenceRoute = {
       if (!shown.length) {
         results.innerHTML = `<div class="card empty-state"><h2>No evidence matches</h2><p>Try different keywords or clear the filters.</p><button type="button" class="btn btn--secondary" id="ef-clear">Clear filters</button></div>`;
         results.querySelector('#ef-clear').addEventListener('click', () => {
-          Object.assign(state, { q: '', project: 'all', question: 'all', relationship: 'any', tag: 'any' });
+          Object.assign(state, { q: '', project: 'all', question: 'all', paper: 'all', relationship: 'any', tag: 'any' });
           form.querySelector('#ef-q').value = ''; form.querySelector('#ef-project').value = 'all';
-          form.querySelector('#ef-rel').value = 'any'; form.querySelector('#ef-tag').value = 'any';
+          form.querySelector('#ef-rel').value = 'any'; form.querySelector('#ef-tag').value = 'any'; form.querySelector('#ef-paper').value = 'all';
           drawQuestionSelect(); sync(); draw(); form.querySelector('#ef-q').focus();
         });
         return;
@@ -117,6 +119,7 @@ export const evidenceRoute = {
       if (state.q) p.set('q', state.q);
       if (state.project !== 'all') p.set('project', state.project);
       if (state.question !== 'all') p.set('rq', state.question);
+      if (state.paper !== 'all') p.set('paper', state.paper);
       if (state.relationship !== 'any') p.set('rel', state.relationship);
       if (state.tag !== 'any') p.set('tag', state.tag);
       history.replaceState(null, '', `#/evidence${p.size ? `?${p}` : ''}`);
@@ -128,6 +131,7 @@ export const evidenceRoute = {
       const projectChanged = state.project !== form.querySelector('#ef-project').value;
       state.project = form.querySelector('#ef-project').value;
       if (projectChanged) { state.question = 'all'; drawQuestionSelect(); } else { state.question = form.querySelector('#ef-question').value; }
+      state.paper = form.querySelector('#ef-paper').value;
       state.relationship = form.querySelector('#ef-rel').value;
       state.tag = form.querySelector('#ef-tag').value;
       sync(); draw();

@@ -4,12 +4,13 @@ import { RELATIONSHIPS } from './validation.js';
 const norm = (s) => String(s ?? '').toLowerCase();
 
 /** `records` are evidence rows; `paperTitles` maps paperId -> title (so the keyword also matches the paper).
- *  Filters: project/question ids or 'all'; relationship or 'any'; tag or 'any'; free-text q (every word must match). */
-export function filterEvidence(records, paperTitles, { q = '', project = 'all', question = 'all', relationship = 'any', tag = 'any' } = {}) {
+ *  Filters: project/question/paper ids or 'all'; relationship or 'any'; tag or 'any'; free-text q (every word must match). */
+export function filterEvidence(records, paperTitles, { q = '', project = 'all', question = 'all', paper = 'all', relationship = 'any', tag = 'any' } = {}) {
   const words = norm(q).split(/\s+/).filter(Boolean);
   return records.filter((e) => {
     if (project !== 'all' && e.projectId !== project) return false;
     if (question !== 'all' && e.researchQuestionId !== question) return false;
+    if (paper !== 'all' && e.paperId !== paper) return false;
     if (relationship !== 'any' && e.relationship !== relationship) return false;
     if (tag !== 'any' && !e.tags.includes(tag)) return false;
     if (!words.length) return true;

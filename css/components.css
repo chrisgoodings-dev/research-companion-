@@ -264,3 +264,32 @@ select { appearance: auto; }
 .paper-ctx select { max-width: 28rem; }
 
 @media (min-width: 40rem) { .tabs__tab { flex: 0 0 auto; font-size: var(--fs-base); padding-inline: var(--space-5); } }
+
+/* ---- Evidence matrix ---- */
+.table-scroll { position: relative; /* contains the absolutely-positioned .visually-hidden spans inside cells, which would otherwise widen the page */ overflow-x: auto; max-width: 100%; margin: var(--space-4) 0 var(--space-5); border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.matrix { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 34rem; }
+.matrix caption { text-align: left; padding: var(--space-3) var(--space-4); font-weight: 700; color: var(--text-muted); caption-side: top; }
+.matrix th, .matrix td { padding: var(--space-3); border-top: 1px solid var(--border); vertical-align: top; text-align: left; }
+.matrix thead th { background: var(--surface-raised); font-size: var(--fs-sm); }
+.matrix tbody th[scope="row"], .matrix tfoot th[scope="row"] { min-width: 11rem; max-width: 16rem; background: var(--surface); position: sticky; left: 0; z-index: 1; border-right: 1px solid var(--border); font-weight: 600; }
+.matrix thead .matrix__corner { position: sticky; left: 0; z-index: 2; }
+.matrix td { min-width: 9rem; }
+.matrix tfoot th, .matrix tfoot td { background: var(--surface-raised); }
+.matrix__sub { display: block; margin-top: 0.15rem; color: var(--text-muted); font-size: var(--fs-sm); font-weight: 400; }
+.matrix__empty { color: var(--text-muted); text-align: center; }
+.matrix__link { display: grid; gap: var(--space-2); padding: var(--space-1); border-radius: var(--radius); color: var(--text); text-decoration: none; min-height: 2.5rem; }
+.matrix__link:hover { background: var(--surface-raised); outline: 2px solid var(--accent); }
+.matrix__rels { display: grid; gap: var(--space-1); margin: 0; padding: 0; list-style: none; }
+.matrix__n { font-size: var(--fs-sm); font-weight: 700; }
+.matrix__papers { font-weight: 700; font-size: var(--fs-sm); }
+.matrix__counts { font-size: var(--fs-sm); color: var(--text-muted); }
+/* Conflict is marked by an icon, bold text and a boxed outline, not by colour alone */
+.matrix__conflict { display: inline-block; padding: 0.1rem 0.5rem; border: 2px solid var(--danger); border-radius: var(--radius); color: var(--danger); font-size: var(--fs-sm); }
+.matrix__dash { display: inline-block; width: 1.5rem; text-align: center; }
+.key__list { display: grid; gap: var(--space-2); margin: 0 0 var(--space-4); padding: 0; list-style: none; }
+.key__list li { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); }
+.key__questions { display: grid; gap: var(--space-2); margin: 0; }
+.key__questions > div { display: grid; gap: 0.1rem var(--space-3); }
+.key__questions dt { font-weight: 800; }
+.key__questions dd { margin: 0; }
+@media (min-width: 40rem) { .key__questions > div { grid-template-columns: 4rem 1fr; } }
