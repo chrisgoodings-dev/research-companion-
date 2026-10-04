@@ -56,8 +56,13 @@
   width: 100%;
 }
 
+/* WCAG 2.4.11 Focus Not Obscured: when the browser scrolls a focused control into view, keep it clear of the
+   fixed bottom navigation (found by testing: "Edit"/"Delete" buttons were left half hidden under the bar). */
+html { scroll-padding-bottom: calc(var(--bottom-nav-height) + var(--space-4)); }
+
 /* Tablet and up: persistent left sidebar, all seven destinations visible */
 @media (min-width: 48rem) {
+  html { scroll-padding-bottom: 0; }   /* no bottom bar on larger screens */
   .app {
     grid-template-columns: var(--nav-width) minmax(0, 1fr);
     grid-template-rows: auto 1fr;

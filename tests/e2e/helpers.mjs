@@ -2,25 +2,32 @@
 import { chromium } from 'playwright-core';
 import { createServer } from 'node:http';
 import { readFile, mkdir } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { extname, join, normalize } from 'node:path';
 import { createRequire } from 'node:module';
 
 const root = process.cwd();
 const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.json': 'application/json', '.svg': 'image/svg+xml' };
 
-export async function start() {
+/** `prefix` serves the site under a sub-path (like GitHub Pages project sites) and 404s everything outside it. */
+export async function start({ prefix = '' } = {}) {
   const axeSource = await readFile(createRequire(import.meta.url).resolve('axe-core/axe.min.js'), 'utf8');
   const server = createServer(async (req, res) => {
     const path = normalize(decodeURIComponent(new URL(req.url, 'http://x').pathname)).replace(/^(\.\.[/\\])+/, '');
-    const name = path === '/' ? '/index.html' : path;
+    if (prefix && !path.startsWith(`${prefix}/`) && path !== prefix) { res.writeHead(404).end('outside the site prefix'); return; }
+    const rel = prefix ? path.slice(prefix.length) || '/' : path;
+    const name = rel === '/' ? '/index.html' : rel;
     let file;
     try { file = await readFile(join(root, name)); } catch { res.writeHead(404).end('not found'); return; }
     res.writeHead(200, { 'content-type': types[extname(name)] ?? 'application/octet-stream' }).end(file);
   }).listen(0);
-  const base = `http://localhost:${server.address().port}/`;
+  const base = `http://localhost:${server.address().port}${prefix ? `${prefix}/` : '/'}`;
   const shots = join(root, 'docs/testing/screenshots');
   await mkdir(shots, { recursive: true });
-  const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+  // CHROMIUM_PATH wins; else the container's Chromium if present; else Playwright's own install (npx playwright-core install chromium)
+  const local = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+  const executablePath = process.env.CHROMIUM_PATH || (existsSync(local) ? local : undefined);
+  const browser = await chromium.launch(executablePath ? { executablePath } : {});
 
   let failures = 0;
   const check = (ok, msg) => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${msg}`); if (!ok) failures++; };

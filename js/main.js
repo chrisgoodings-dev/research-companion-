@@ -1,9 +1,11 @@
 import { routes } from './views/index.js';
 import { startRouter } from './router.js';
 import { initTheme } from './ui/theme.js';
+import { keepFocusClearOfFixedBars } from './ui/focus.js';
 
 function init() {
   initTheme(document.getElementById('theme-toggle'));
+  keepFocusClearOfFixedBars();
 
   // The skip link must not change the hash (it is the router's state), so focus <main> directly.
   document.querySelector('.skip-link').addEventListener('click', (e) => {

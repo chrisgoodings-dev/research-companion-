@@ -93,6 +93,7 @@ async function keyboardPass(page) {
   });
   const reached = new Set();
   const noIndicator = [];
+  const obscured = [];
   const trapped = false; // a real trap shows up as controls that were never reached
   for (let i = 0; i < expected.length + 15; i += 1) {
     await page.keyboard.press('Tab');
@@ -101,15 +102,29 @@ async function keyboardPass(page) {
       if (!el || el === document.body) return null;
       const cs = getComputedStyle(el);
       const outline = cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) >= 2 && cs.outlineColor !== 'rgba(0, 0, 0, 0)';
-      return { id: Number(el.getAttribute('data-kb')) || null, ok: outline || cs.boxShadow !== 'none', label: `${el.tagName.toLowerCase()}${el.id ? `#${el.id}` : ''} "${(el.textContent || '').trim().slice(0, 30)}"` };
+      // WCAG 2.4.11 Focus Not Obscured: a fixed bar (the phone bottom nav) must not cover the focused control
+      const rect = el.getBoundingClientRect();
+      let covered = '';
+      for (const bar of document.querySelectorAll('.nav, .topbar, .toasts')) {
+        if (bar.contains(el) || getComputedStyle(bar).position !== 'fixed') continue;
+        const b = bar.getBoundingClientRect();
+        if (b.height < 1) continue;   // an empty container (the toast area with no toast showing) hides nothing
+        if (!(rect.bottom > b.top + 1 && rect.top < b.bottom - 1 && rect.right > b.left && rect.left < b.right)) continue;
+        // A control taller than half the screen (a focusable panel or scroll area) legitimately runs under the bar;
+        // what matters is that its top edge, where the focus ring starts, is clear of it.
+        const tall = rect.height > window.innerHeight / 2;
+        if (!tall || rect.top > b.top - 24) covered = ` [element ${Math.round(rect.top)}-${Math.round(rect.bottom)}, bar from ${Math.round(b.top)}, scrollY ${Math.round(window.scrollY)}/${Math.round(document.documentElement.scrollHeight - window.innerHeight)}]`;
+      }
+      return { id: Number(el.getAttribute('data-kb')) || null, covered, ok: outline || cs.boxShadow !== 'none', label: `${el.tagName.toLowerCase()}${el.id ? `#${el.id}` : ''} "${(el.textContent || '').trim().slice(0, 30)}"` };
     });
     if (!info) break; // focus left the document: reached the end
     if (info.id && reached.has(info.id)) break; // wrapped round to the start: the whole document has been traversed
     if (info.id) reached.add(info.id);
     if (!info.ok) noIndicator.push(info.label);
+    if (info.covered) obscured.push(info.label + info.covered);
   }
   const unreached = expected.filter((e) => !reached.has(e.id)).map((e) => e.label);
-  return { expected: expected.length, reached: reached.size, trapped, unreached, noIndicator: [...new Set(noIndicator)] };
+  return { expected: expected.length, reached: reached.size, trapped, unreached, noIndicator: [...new Set(noIndicator)], obscured: [...new Set(obscured)] };
 }
 
 const TEXT_SPACING = '* { line-height: 1.5 !important; letter-spacing: 0.12em !important; word-spacing: 0.16em !important; } p { margin-bottom: 2em !important; }';
@@ -160,7 +175,7 @@ for (const theme of THEMES) {
       if (row.violations.length) failures.push(`${label}: axe ${row.violations.map((v) => `${v.id} [${v.nodes[0]}]`).join('; ')}`);
       if (doc.h1 !== 1 || doc.dupIds.length || doc.main !== 1 || doc.lang !== 'en' || !doc.title) failures.push(`${label}: document ${JSON.stringify(doc)}`);
       if (spacing.sideways || spacing.clipped.length) failures.push(`${label}: text spacing ${JSON.stringify(spacing)}`);
-      if (kb && (kb.trapped || kb.unreached.length || kb.noIndicator.length)) failures.push(`${label}: keyboard ${JSON.stringify({ trapped: kb.trapped, unreached: kb.unreached, noIndicator: kb.noIndicator })}`);
+      if (kb && (kb.trapped || kb.unreached.length || kb.noIndicator.length || kb.obscured.length)) failures.push(`${label}: keyboard ${JSON.stringify({ trapped: kb.trapped, unreached: kb.unreached, noIndicator: kb.noIndicator, obscured: kb.obscured })}`);
     }
     if (pageErrors.length) failures.push(`${vp.name}/${theme}: uncaught errors ${pageErrors.join('; ')}`);
     await ctx.close();
@@ -179,7 +194,7 @@ const md = [
   '## Coverage',
   `- **${new Set(report.map((r) => r.name)).size} pages/states** × **${VIEWPORTS.length} viewports** (${VIEWPORTS.map((v) => v.name).join(', ')}) × **${THEMES.length} themes** = **${total} page audits**, each with rich seeded data (projects, questions, saved papers, reviews, evidence of every relationship).`,
   '- **axe-core 4.x** with the WCAG 2.0, 2.1 and 2.2 level A and AA rule sets **plus best-practice rules**.',
-  '- **Keyboard-only pass** (light theme, every viewport): Tab through the page; every visible link, button and field must be reached, focus must show a visible indicator (outline of at least 2px or shadow), and focus must never get stuck.',
+  '- **Keyboard-only pass** (light theme, every viewport): Tab through the page; every visible link, button and field must be reached, focus must show a visible indicator (outline of at least 2px or shadow), focus must never get stuck, and (WCAG 2.2 · 2.4.11) the focused control must not be hidden behind a fixed bar such as the phone bottom navigation.',
   '- **WCAG 1.4.12 text-spacing stress test**: line height 1.5, letter spacing 0.12em, word spacing 0.16em, paragraph spacing 2em; nothing may be clipped and the page must not scroll sideways.',
   '- **Document checks**: exactly one `<h1>` and one `<main>`, no duplicate ids, `lang="en"`, non-empty `<title>`.',
   '',
