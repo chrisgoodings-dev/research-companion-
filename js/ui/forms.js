@@ -5,7 +5,7 @@ import { announce } from './announcer.js';
 export function messageFor(input) {
   const label = input.dataset.label || 'This field';
   const trimmed = input.value.trim();
-  if (input.required && trimmed === '') return `Enter ${label.toLowerCase()}.`;
+  if (input.required && trimmed === '') return input.tagName === 'SELECT' ? `Choose ${label.toLowerCase()}.` : `Enter ${label.toLowerCase()}.`;
   const min = Number(input.getAttribute('minlength')) || 0;
   if (trimmed !== '' && min && trimmed.length < min) return `${label} must be at least ${min} characters (you have ${trimmed.length}).`;
   const max = Number(input.getAttribute('maxlength')) || 0;
@@ -90,4 +90,28 @@ export function wireForm(form, onSubmit, { crossChecks = [] } = {}) {
       buttons.forEach((b) => { b.disabled = false; });
     }
   });
+}
+
+const fields = (root) => [...root.querySelectorAll('input:not([type=hidden]):not([type=button]):not([type=submit]), textarea, select')];
+
+/** True if any field differs from the value it had when rendered (so typing then deleting is NOT dirty). */
+export function isDirty(root) {
+  return fields(root).some((el) => {
+    if (el.tagName === 'SELECT') {
+      // With no `selected` attribute the browser preselects the first option, so that is the baseline.
+      const preset = [...el.options].findIndex((o) => o.defaultSelected);
+      return el.selectedIndex !== (preset === -1 ? 0 : preset);
+    }
+    if (el.type === 'checkbox' || el.type === 'radio') return el.checked !== el.defaultChecked;
+    return el.value !== el.defaultValue;
+  });
+}
+
+/** Treat the current values as the saved baseline (call after a successful save). */
+export function markClean(root) {
+  for (const el of fields(root)) {
+    if (el.tagName === 'SELECT') [...el.options].forEach((o, i) => { o.defaultSelected = i === el.selectedIndex; });
+    else if (el.type === 'checkbox' || el.type === 'radio') el.defaultChecked = el.checked;
+    else el.defaultValue = el.value;
+  }
 }

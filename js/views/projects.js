@@ -83,6 +83,8 @@ async function mountDetail(outlet, repo, id, ctx) {
     }
     const questions = await repo.questions.listByProject(id);
     const savedPapers = await repo.papers.listByProject(id);
+    const evidenceByQuestion = {};
+    for (const e of await repo.evidence.listByProject(id)) evidenceByQuestion[e.researchQuestionId] = (evidenceByQuestion[e.researchQuestionId] ?? 0) + 1;
     h1.textContent = project.name;
     document.title = `${project.name} · SE Research Hub`;
     intro.textContent = `Created ${date(project.createdAt)} · ${plural(questions.length, 'research question')} · ${plural(savedPapers.length, 'saved paper')}`;
@@ -99,6 +101,7 @@ async function mountDetail(outlet, repo, id, ctx) {
                 <span class="badge rq__num">RQ${i + 1}</span>
                 <p class="rq__text">${esc(q.text)}</p>
               </div>
+              <p class="rq__evidence">${evidenceByQuestion[q.id] ? `<a href="#/evidence?project=${esc(id)}&amp;rq=${esc(q.id)}">${plural(evidenceByQuestion[q.id], 'evidence record')}<span class="visually-hidden"> for RQ${i + 1}</span></a>` : 'No evidence recorded yet'}</p>
               <div class="actions">
                 <button type="button" class="btn btn--secondary btn--small" data-action="edit" data-id="${esc(q.id)}">Edit<span class="visually-hidden"> RQ${i + 1}</span></button>
                 <button type="button" class="btn btn--danger-outline btn--small" data-action="delete" data-id="${esc(q.id)}">Delete<span class="visually-hidden"> RQ${i + 1}</span></button>

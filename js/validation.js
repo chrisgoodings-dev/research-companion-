@@ -91,3 +91,48 @@ export function validateReview(input = {}) {
   }
   return { valid: Object.keys(errors).length === 0, errors, values };
 }
+
+export const RELATIONSHIPS = ['supports', 'contradicts', 'mixed', 'contextual', 'none'];
+export const EVIDENCE_LIMITS = { evidence: { max: 3000 }, interpretation: { max: 3000 }, location: { max: 100 }, tags: { max: 10, length: 40 } };
+
+/** "Productivity, controlled  Experiment, productivity" -> ['productivity', 'controlled experiment'] */
+export function parseTags(value) {
+  const raw = Array.isArray(value) ? value : String(value ?? '').split(',');
+  const tags = [];
+  for (const item of raw) {
+    const tag = String(item).toLowerCase().replace(/\s+/g, ' ').trim();
+    if (tag && !tags.includes(tag)) tags.push(tag);
+  }
+  return tags;
+}
+
+/** Message for a bad tag list, or '' (shared by the form and the data layer). */
+export function tagsError(value) {
+  const tags = parseTags(value);
+  if (tags.length > EVIDENCE_LIMITS.tags.max) return `Use at most ${EVIDENCE_LIMITS.tags.max} tags (you have ${tags.length}).`;
+  const long = tags.find((t) => t.length > EVIDENCE_LIMITS.tags.length);
+  return long ? `Each tag must be at most ${EVIDENCE_LIMITS.tags.length} characters ("${long.slice(0, 20)}…" is too long).` : '';
+}
+
+/** One piece of evidence: what a paper reports (evidence) kept apart from what the researcher makes of it
+ *  (interpretation), tied to one research question with a relationship. */
+export function validateEvidence(input = {}) {
+  const errors = {};
+  const evidence = str(input.evidence);
+  const interpretation = str(input.interpretation);
+  const location = str(input.location);
+  const relationship = RELATIONSHIPS.includes(input.relationship) ? input.relationship : null;
+  const ids = { projectId: str(input.projectId), paperId: str(input.paperId), researchQuestionId: str(input.researchQuestionId) };
+
+  if (!ids.researchQuestionId) errors.researchQuestionId = 'Choose a research question.';
+  if (!ids.projectId || !ids.paperId) errors.paperId = 'Evidence must belong to a paper in a project.';
+  if (!relationship) errors.relationship = 'Choose how this evidence relates to the question.';
+  if (!evidence) errors.evidence = 'Describe what the paper reports.';
+  else if (evidence.length > EVIDENCE_LIMITS.evidence.max) errors.evidence = `Evidence must be at most ${EVIDENCE_LIMITS.evidence.max} characters.`;
+  if (interpretation.length > EVIDENCE_LIMITS.interpretation.max) errors.interpretation = `Interpretation must be at most ${EVIDENCE_LIMITS.interpretation.max} characters.`;
+  if (location.length > EVIDENCE_LIMITS.location.max) errors.location = `Location must be at most ${EVIDENCE_LIMITS.location.max} characters.`;
+  const tagProblem = tagsError(input.tags);
+  if (tagProblem) errors.tags = tagProblem;
+
+  return { valid: Object.keys(errors).length === 0, errors, values: { ...ids, relationship: relationship ?? 'none', evidence, interpretation, location, tags: parseTags(input.tags) } };
+}

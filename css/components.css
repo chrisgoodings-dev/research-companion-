@@ -200,7 +200,8 @@ select { appearance: auto; }
 
 .tabs__list { display: flex; gap: var(--space-1); border-bottom: 2px solid var(--border); margin-bottom: var(--space-4); overflow-x: auto; }
 .tabs__tab {
-  min-height: 2.75rem; padding: var(--space-2) var(--space-5);
+  flex: 1 1 0; text-align: center; font-size: var(--fs-sm);   /* phones: tabs share the width so none is cut off */
+  min-height: 2.75rem; padding: var(--space-2) var(--space-1);
   border: 0; border-bottom: 4px solid transparent; border-radius: var(--radius) var(--radius) 0 0;
   background: none; color: var(--text-muted); font: inherit; font-weight: 700; cursor: pointer; white-space: nowrap;
 }
@@ -227,3 +228,39 @@ select { appearance: auto; }
 .lib-item .chips { margin-top: var(--space-3); }
 
 #panel-review > .field { margin-bottom: var(--space-4); }
+
+/* ---- Evidence ---- */
+/* Relationship badges: a symbol, the word, a coloured border and tint. Meaning never depends on colour alone. */
+.rel { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.1rem 0.7rem; border: 2px solid currentColor; border-radius: 999px; font-size: var(--fs-sm); font-weight: 800; white-space: nowrap; }
+.rel__icon { font-weight: 900; }
+.rel--supports { color: var(--success); }
+.rel--contradicts { color: var(--danger); }
+.rel--mixed { color: var(--warning); }
+.rel--contextual { color: var(--accent); }
+.rel--none { color: var(--text-muted); }
+
+.ev { display: grid; gap: var(--space-3); background: var(--surface-raised); }
+.ev__head { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-3); align-items: center; }
+.ev__date { margin-left: auto; color: var(--text-muted); font-size: var(--fs-sm); }
+.ev__rq { margin: 0; font-weight: 700; }
+.ev__paper { margin: 0; font-size: var(--fs-sm); color: var(--text-muted); }
+.ev__blocks { display: grid; gap: var(--space-3); margin: 0; }
+.ev__block { padding: var(--space-3) var(--space-4); border-left: 5px solid var(--border); background: var(--surface); border-radius: 0 var(--radius) var(--radius) 0; }
+.ev__block dt { font-size: var(--fs-sm); font-weight: 800; color: var(--text-muted); margin-bottom: var(--space-1); text-transform: uppercase; letter-spacing: 0.03em; }
+.ev__block dd { margin: 0; white-space: pre-wrap; }
+/* The researcher's own reading is visibly different from what the paper reports */
+.ev__block--mine { border-left-color: var(--accent); border-left-style: dashed; }
+.ev__block--where { border-left-width: 2px; }
+.ev-form { padding-bottom: var(--space-2); }
+.radio-group--stack { display: grid; gap: var(--space-2); }
+.radio--block { align-items: flex-start; }
+.radio--block input { margin-top: 0.7rem; }
+.radio--block label { display: block; min-height: 2.75rem; padding: var(--space-2) 0; font-weight: 400; }
+.radio__name { font-weight: 800; }
+.radio__desc { display: block; color: var(--text-muted); font-size: var(--fs-sm); }
+.rq__evidence { margin: var(--space-2) 0 0; font-size: var(--fs-sm); color: var(--text-muted); }
+.rel-counts { margin: 0 0 var(--space-4); color: var(--text-muted); font-size: var(--fs-sm); font-weight: 600; }
+.paper-ctx { margin: 0 0 var(--space-4); }
+.paper-ctx select { max-width: 28rem; }
+
+@media (min-width: 40rem) { .tabs__tab { flex: 0 0 auto; font-size: var(--fs-base); padding-inline: var(--space-5); } }

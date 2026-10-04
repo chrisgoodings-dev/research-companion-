@@ -1,5 +1,5 @@
 import { wrap, finished } from './db.js';
-import { assertValid, validateProject, validateQuestion, validatePaper, validateReview } from '../validation.js';
+import { assertValid, validateProject, validateQuestion, validatePaper, validateReview, validateEvidence } from '../validation.js';
 
 const newId = () => globalThis.crypto.randomUUID();
 const now = () => new Date().toISOString();
@@ -194,11 +194,56 @@ export function createRepository(db) {
     },
   };
 
+  /** Evidence records. Integrity rules: the paper must be saved in the project, and the research question
+   *  must belong to that same project. Evidence is removed automatically with its question, its paper link
+   *  or its project (see those remove() methods). */
+  const evidence = {
+    async create(input) {
+      const values = assertValid(validateEvidence(input));
+      await evidence.assertConsistent(values);
+      const record = { id: newId(), ...values, createdAt: now(), updatedAt: now() };
+      await wrap(store('evidenceNotes', 'readwrite').add(record));
+      return record;
+    },
+
+    /** Edit text, relationship, tags or move the record to another question in the same project. */
+    async update(id, input) {
+      const existing = await wrap(store('evidenceNotes').get(id));
+      if (!existing) throw new Error('Evidence record not found.');
+      const values = assertValid(validateEvidence({ ...input, projectId: existing.projectId, paperId: existing.paperId }));
+      await evidence.assertConsistent(values, { skipLink: true });
+      const record = { ...existing, ...values, updatedAt: now() };
+      await wrap(store('evidenceNotes', 'readwrite').put(record));
+      return record;
+    },
+
+    remove: (id) => wrap(store('evidenceNotes', 'readwrite').delete(id)),
+
+    async assertConsistent({ projectId, paperId, researchQuestionId }, { skipLink = false } = {}) {
+      const question = await wrap(store('researchQuestions').get(researchQuestionId));
+      if (!question || question.projectId !== projectId) throw new Error('That research question is not part of this project.');
+      if (!skipLink && !(await wrap(store('projectPapers').get(`${projectId}:${paperId}`)))) throw new Error('That paper is not saved in this project.');
+    },
+
+    /** Newest first. */
+    async listByPaper(projectId, paperId) {
+      const all = await wrap(store('evidenceNotes').index('paperId').getAll(paperId));
+      return all.filter((e) => e.projectId === projectId).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    },
+    async listByProject(projectId) {
+      const all = await wrap(store('evidenceNotes').index('projectId').getAll(projectId));
+      return all.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    },
+    async listAll() {
+      return (await wrap(store('evidenceNotes').getAll())).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    },
+  };
+
   async function counts() {
     const names = ['projects', 'researchQuestions', 'papers', 'evidenceNotes'];
     const values = await Promise.all(names.map((n) => wrap(store(n).count())));
     return Object.fromEntries(names.map((n, i) => [n, values[i]]));
   }
 
-  return { projects, questions, papers, counts, db };
+  return { projects, questions, papers, evidence, counts, db };
 }

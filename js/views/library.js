@@ -5,11 +5,12 @@ import { formatAuthors } from '../api/paper.js';
 import { parseQuery } from '../router.js';
 import { esc } from '../ui/dom.js';
 import { field } from '../ui/fields.js';
-import { wireForm } from '../ui/forms.js';
+import { wireForm, isDirty, markClean } from '../ui/forms.js';
 import { announce } from '../ui/announcer.js';
 import { showToast } from '../ui/toast.js';
 import { confirmAction } from '../ui/confirm.js';
 import { initTabs } from '../ui/tabs.js';
+import { evidenceCard, evidenceForm, evidenceChecks, readEvidence } from '../ui/evidenceUi.js';
 import { formatDate, plural, STATUS_LABEL } from '../ui/format.js';
 
 const OA_LABEL = { gold: 'Open access (gold)', green: 'Open access (green)', hybrid: 'Open access (hybrid)', bronze: 'Open access (bronze)', diamond: 'Open access (diamond)' };
@@ -151,46 +152,50 @@ async function mountDetail(outlet, repo, paperId, ctx) {
   const query = parseQuery(location.hash);
   const nameOf = (id) => projects.find((p) => p.id === id)?.name ?? 'Deleted project';
   let currentProject = paper.links.some((l) => l.projectId === query.get('project')) ? query.get('project') : paper.links[0].projectId;
+  let currentTab = ['review', 'evidence'].includes(query.get('tab')) ? query.get('tab') : 'overview';
   const linkFor = (projectId) => paper.links.find((l) => l.projectId === projectId);
 
   h1.textContent = paper.title;
   document.title = `${paper.title} · SE Research Hub`;
   intro.textContent = `${formatAuthors(paper.authors)}${paper.year ? ` · ${paper.year}` : ''}`;
 
+  // The Review and Evidence tabs both work inside ONE project, chosen here (above the tabs).
+  const context = paper.links.length > 1
+    ? `<div class="field paper-ctx"><label class="field__label" for="paper-project">Working in project</label>
+         <p class="field__hint" id="paper-project-hint">Applies to the Review and Evidence tabs. Each project keeps its own review and evidence for this paper.</p>
+         <select id="paper-project" aria-describedby="paper-project-hint">${paper.links.map((l) => `<option value="${esc(l.projectId)}"${l.projectId === currentProject ? ' selected' : ''}>${esc(nameOf(l.projectId))}</option>`).join('')}</select></div>`
+    : `<p class="paper-ctx review__project">Project: <a href="#/projects/${esc(currentProject)}">${esc(nameOf(currentProject))}</a></p>`;
+
   body.innerHTML = `
     <nav class="breadcrumb" aria-label="Breadcrumb"><ol><li><a href="#/library">Library</a></li><li aria-current="page">${esc(paper.title)}</li></ol></nav>
+    ${context}
     <div class="tabs" id="paper-tabs">
       <div role="tablist" aria-label="Paper sections" class="tabs__list">
         <button type="button" role="tab" id="tab-overview" data-tab="overview" aria-controls="panel-overview" class="tabs__tab">Overview</button>
         <button type="button" role="tab" id="tab-review" data-tab="review" aria-controls="panel-review" class="tabs__tab">Review</button>
+        <button type="button" role="tab" id="tab-evidence" data-tab="evidence" aria-controls="panel-evidence" class="tabs__tab">Evidence</button>
       </div>
       <section role="tabpanel" id="panel-overview" aria-labelledby="tab-overview" tabindex="0" class="tabs__panel card">${overviewHtml(paper, nameOf)}</section>
       <section role="tabpanel" id="panel-review" aria-labelledby="tab-review" class="tabs__panel card" hidden></section>
+      <section role="tabpanel" id="panel-evidence" aria-labelledby="tab-evidence" class="tabs__panel card" hidden></section>
     </div>`;
 
   const reviewPanel = body.querySelector('#panel-review');
-  let dirty = false;
+  const evidencePanel = body.querySelector('#panel-evidence');
 
-  function setUrl(tab) {
-    const href = paperHref(paper.id, { tab, project: paper.links.length > 1 ? currentProject : '' });
-    history.replaceState(null, '', href);
+  function setUrl() {
+    history.replaceState(null, '', paperHref(paper.id, { tab: currentTab, project: paper.links.length > 1 ? currentProject : '' }));
   }
 
+  /* ----- Review tab ----- */
   function drawReview() {
     const link = linkFor(currentProject);
     const r = link.review ?? {};
     const status = link.status ?? 'unread';
-    const projectPicker = paper.links.length > 1
-      ? `<div class="field"><label class="field__label" for="rv-project">Reviewing in project</label>
-           <p class="field__hint" id="rv-project-hint">Each project keeps its own review of this paper.</p>
-           <select id="rv-project" aria-describedby="rv-project-hint">${paper.links.map((l) => `<option value="${esc(l.projectId)}"${l.projectId === currentProject ? ' selected' : ''}>${esc(nameOf(l.projectId))}</option>`).join('')}</select></div>`
-      : `<p class="review__project">Project: <a href="#/projects/${esc(currentProject)}">${esc(nameOf(currentProject))}</a></p>`;
-
     const area = (key, label, hint, rows = 3) => field({ id: `rv-${key}`, label, hint, control: 'textarea', rows, value: r[key] ?? '', maxlength: REVIEW_MAX, counter: true });
 
     reviewPanel.innerHTML = `
       <h2 class="visually-hidden">Review</h2>
-      ${projectPicker}
       <form id="review-form" class="form">
         <fieldset class="radio-group">
           <legend>Reading status</legend>
@@ -207,36 +212,98 @@ async function mountDetail(outlet, repo, paperId, ctx) {
         <div class="actions"><button type="submit" class="btn btn--primary">Save review</button>
           <span class="review__saved" id="review-saved">${link.reviewedAt ? `Last saved ${formatDate(link.reviewedAt)}` : 'Not saved yet'}</span></div>
       </form>`;
-    dirty = false;
 
     const form = reviewPanel.querySelector('#review-form');
-    form.addEventListener('input', () => { dirty = true; });
     wireForm(form, async (v) => {
       const updated = await repo.papers.saveReview(currentProject, paper.id, {
         status: v['rv-status'], studyAim: v['rv-studyAim'], methodology: v['rv-methodology'], participants: v['rv-participants'],
         keyFindings: v['rv-keyFindings'], limitations: v['rv-limitations'], notes: v['rv-notes'],
       });
       Object.assign(linkFor(currentProject), { status: updated.status, review: updated.review, reviewedAt: updated.reviewedAt });
-      dirty = false;
+      markClean(form);
       reviewPanel.querySelector('#review-saved').textContent = `Last saved ${formatDate(updated.reviewedAt)}`;
       showToast('Review saved');
     });
-
-    reviewPanel.querySelector('#rv-project')?.addEventListener('change', async (e) => {
-      const next = e.target.value;
-      if (dirty) {
-        const ok = await confirmAction({ title: 'Discard unsaved changes?', body: `Your changes to the review in “${nameOf(currentProject)}” have not been saved.`, confirmLabel: 'Discard changes' });
-        if (!ok) { e.target.value = currentProject; return; }
-      }
-      currentProject = next;
-      setUrl('review');
-      drawReview();
-      reviewPanel.querySelector('#rv-project').focus();
-    });
   }
 
+  /* ----- Evidence tab ----- */
+  async function drawEvidence(focus) {
+    const [questions, records] = await Promise.all([repo.questions.listByProject(currentProject), repo.evidence.listByPaper(currentProject, paper.id)]);
+    const rqIndex = new Map(questions.map((q, i) => [q.id, { label: `RQ${i + 1}`, text: q.text }]));
+
+    if (!questions.length) {
+      evidencePanel.innerHTML = `<h2 class="visually-hidden">Evidence</h2><div class="empty-state"><h3>Add a research question first</h3>
+        <p>Evidence is recorded against a research question, and “${esc(nameOf(currentProject))}” does not have one yet.</p>
+        <a class="btn btn--primary" href="#/projects/${esc(currentProject)}">Add research questions</a></div>`;
+      return;
+    }
+
+    evidencePanel.innerHTML = `
+      <h2 class="visually-hidden">Evidence</h2>
+      <form id="ev-add" class="form ev-form">
+        <h3>Add evidence</h3>
+        ${evidenceForm('ev-new', { questions, submitLabel: 'Add evidence' })}
+      </form>
+      <h3 id="ev-list-h" tabindex="-1" class="section-gap">Recorded evidence (${records.length})</h3>
+      ${records.length ? `<ul class="stack">${records.map((e) => evidenceCard(e, {
+        ...(rqIndex.get(e.researchQuestionId) ? { rqLabel: rqIndex.get(e.researchQuestionId).label, rqText: rqIndex.get(e.researchQuestionId).text } : { rqLabel: 'RQ?', rqText: 'Question no longer exists' }),
+        actionsHtml: `<div class="actions">
+          <button type="button" class="btn btn--secondary btn--small" data-ev-edit="${esc(e.id)}">Edit<span class="visually-hidden"> evidence for ${esc(rqIndex.get(e.researchQuestionId)?.label ?? 'question')}</span></button>
+          <button type="button" class="btn btn--danger-outline btn--small" data-ev-delete="${esc(e.id)}">Delete<span class="visually-hidden"> evidence for ${esc(rqIndex.get(e.researchQuestionId)?.label ?? 'question')}</span></button></div>`,
+      })).join('')}</ul>` : '<p class="empty-state">No evidence recorded for this paper in this project yet.</p>'}`;
+
+    const addForm = evidencePanel.querySelector('#ev-add');
+    wireForm(addForm, async (v) => {
+      await repo.evidence.create({ projectId: currentProject, paperId: paper.id, ...readEvidence('ev-new', v) });
+      showToast('Evidence added');
+      await drawEvidence('#ev-new-rq');
+    }, { crossChecks: evidenceChecks('ev-new') });
+
+    evidencePanel.querySelectorAll('[data-ev-edit]').forEach((btn) => btn.addEventListener('click', () => {
+      const record = records.find((x) => x.id === btn.dataset.evEdit);
+      const li = btn.closest('.ev');
+      const prefix = `ev-edit-${record.id}`;
+      li.innerHTML = `<form class="form" id="${prefix}-form"><h3>Edit evidence</h3>${evidenceForm(prefix, { record, questions, submitLabel: 'Save changes' })}</form>`;
+      li.querySelector(`#${prefix}-rq`).focus();
+      const back = () => drawEvidence(`[data-ev-edit="${record.id}"]`);
+      li.querySelector('[data-cancel-edit]').addEventListener('click', back);
+      wireForm(li.querySelector('form'), async (v) => {
+        await repo.evidence.update(record.id, readEvidence(prefix, v));
+        showToast('Evidence saved');
+        await drawEvidence(`[data-ev-edit="${record.id}"]`);
+      }, { crossChecks: evidenceChecks(prefix) });
+    }));
+
+    evidencePanel.querySelectorAll('[data-ev-delete]').forEach((btn) => btn.addEventListener('click', async () => {
+      const record = records.find((x) => x.id === btn.dataset.evDelete);
+      const ok = await confirmAction({ title: 'Delete this evidence?', body: `“${record.evidence.slice(0, 120)}${record.evidence.length > 120 ? '…' : ''}” will be removed. This cannot be undone.`, confirmLabel: 'Delete evidence' });
+      if (!ok) return;
+      await repo.evidence.remove(record.id);
+      showToast('Evidence deleted');
+      await drawEvidence('#ev-list-h');
+    }));
+
+    if (focus) evidencePanel.querySelector(focus)?.focus();
+  }
+
+  /* ----- project switching (shared by Review and Evidence) ----- */
+  body.querySelector('#paper-project')?.addEventListener('change', async (e) => {
+    const picker = e.target;
+    const next = picker.value;
+    if (isDirty(reviewPanel) || isDirty(evidencePanel)) {
+      const ok = await confirmAction({ title: 'Discard unsaved changes?', body: `You have unsaved text for “${nameOf(currentProject)}”. Switching project will discard it.`, confirmLabel: 'Discard changes' });
+      if (!ok) { picker.value = currentProject; return; }
+    }
+    currentProject = next;
+    setUrl();
+    drawReview();
+    await drawEvidence();
+    picker.focus();
+  });
+
   drawReview();
-  initTabs(body.querySelector('#paper-tabs'), { initial: query.get('tab') === 'review' ? 'review' : 'overview', onChange: setUrl });
+  await drawEvidence();
+  initTabs(body.querySelector('#paper-tabs'), { initial: currentTab, onChange: (tab) => { currentTab = tab; setUrl(); } });
 }
 
 function overviewHtml(p, nameOf) {

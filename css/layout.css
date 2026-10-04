@@ -4,6 +4,7 @@
 
 .app {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);   /* the column may shrink below its content, so wide children scroll/wrap inside it instead of widening the page */
   grid-template-rows: auto 1fr;
   min-height: 100vh;
   padding-bottom: var(--bottom-nav-height); /* room for the fixed bottom nav */
@@ -58,7 +59,7 @@
 /* Tablet and up: persistent left sidebar, all seven destinations visible */
 @media (min-width: 48rem) {
   .app {
-    grid-template-columns: var(--nav-width) 1fr;
+    grid-template-columns: var(--nav-width) minmax(0, 1fr);
     grid-template-rows: auto 1fr;
     grid-template-areas:
       "nav top"

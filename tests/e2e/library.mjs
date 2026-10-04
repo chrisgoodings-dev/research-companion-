@@ -111,19 +111,24 @@ check((await page.getAttribute('#tab-review', 'aria-selected')) === 'true' && aw
 check(await page.locator('#panel-overview').isHidden() && await page.locator('#panel-review').isVisible(), 'panels switch');
 check(page.url().includes('tab=review'), 'tab is kept in the URL');
 await page.keyboard.press('ArrowRight');
+check(await page.evaluate(() => document.activeElement.id === 'tab-evidence'), 'ArrowRight moves to the third tab');
+await page.keyboard.press('ArrowRight');
 check(await page.evaluate(() => document.activeElement.id === 'tab-overview'), 'ArrowRight wraps around');
+await page.keyboard.press('ArrowLeft');
+check(await page.evaluate(() => document.activeElement.id === 'tab-evidence'), 'ArrowLeft wraps the other way');
+await page.keyboard.press('Home');
 await page.keyboard.press('End');
-check(await page.evaluate(() => document.activeElement.id === 'tab-review'), 'End goes to the last tab');
+check(await page.evaluate(() => document.activeElement.id === 'tab-evidence'), 'End goes to the last tab');
 await page.keyboard.press('Home');
 check(await page.evaluate(() => document.activeElement.id === 'tab-overview'), 'Home goes to the first tab');
 await page.click('#tab-review');
 
 // ---------- review form (paper is in two projects) ----------
-check((await page.locator('#rv-project option').count()) === 2, 'project picker appears when a paper is in several projects');
+check((await page.locator('#paper-project option').count()) === 2, 'project picker appears (above the tabs) when a paper is in several projects');
 await axe(page, 'paper detail: review');
 await page.screenshot({ path: join(shots, 'paper-review-desktop.png'), fullPage: true });
 check((await page.locator('input[name=rv-status]:checked').getAttribute('value')) === 'unread', 'new review defaults to Unread');
-const project1 = await page.locator('#rv-project').inputValue();
+const project1 = await page.locator('#paper-project').inputValue();
 await page.check('#rv-status-reading');
 await page.fill('#rv-studyAim', 'Measure how completion acceptance relates to productivity.');
 await page.fill('#rv-keyFindings', 'Acceptance rate is the best predictor.');
@@ -134,26 +139,26 @@ check((await page.locator('.toast', { hasText: 'Review saved' }).count()) >= 1, 
 
 // switch project with unsaved changes -> guarded
 await page.fill('#rv-notes', 'unsaved note');
-await page.selectOption('#rv-project', { index: project1 === (await page.locator('#rv-project option >> nth=0').getAttribute('value')) ? 1 : 0 });
+await page.selectOption('#paper-project', { index: project1 === (await page.locator('#paper-project option >> nth=0').getAttribute('value')) ? 1 : 0 });
 check(await page.locator('#confirm-dialog').evaluate((d) => d.open), 'switching project with unsaved changes asks first');
 check(await page.evaluate(() => document.activeElement.textContent.trim() === 'Cancel'), 'Cancel is focused, not Discard');
 await page.click('#confirm-dialog button[value=cancel]');
-await page.waitForFunction((p) => document.querySelector('#rv-project').value === p, project1);
-check((await page.locator('#rv-project').inputValue()) === project1, 'cancelling keeps the current project selected');
+await page.waitForFunction((p) => document.querySelector('#paper-project').value === p, project1);
+check((await page.locator('#paper-project').inputValue()) === project1, 'cancelling keeps the current project selected');
 check((await page.locator('#rv-notes').inputValue()) === 'unsaved note', 'unsaved text is kept');
-await page.selectOption('#rv-project', { index: project1 === (await page.locator('#rv-project option >> nth=0').getAttribute('value')) ? 1 : 0 });
+await page.selectOption('#paper-project', { index: project1 === (await page.locator('#paper-project option >> nth=0').getAttribute('value')) ? 1 : 0 });
 await page.click('#confirm-ok');
 await page.waitForFunction(() => document.querySelector('#rv-studyAim').value === ''); // form re-rendered for the other project
 check((await page.locator('#rv-studyAim').inputValue()) === '', 'the other project has its own, empty review');
 check((await page.locator('input[name=rv-status]:checked').getAttribute('value')) === 'unread', 'and its own status');
 check(page.url().includes('tab=review') && page.url().includes('project='), 'URL records tab and project');
-check(await page.evaluate(() => document.activeElement.id === 'rv-project'), 'focus stays on the project picker after switching');
+check(await page.evaluate(() => document.activeElement.id === 'paper-project'), 'focus stays on the project picker after switching');
 
 // persistence
 await page.reload();
 await page.waitForSelector('#review-form');
 check(await page.locator('#panel-review').isVisible(), 'reload keeps the Review tab selected');
-await page.selectOption('#rv-project', project1);
+await page.selectOption('#paper-project', project1);
 check((await page.locator('#rv-studyAim').inputValue()).startsWith('Measure how completion'), 'saved review is restored');
 check((await page.locator('input[name=rv-status]:checked').getAttribute('value')) === 'reading', 'saved status is restored');
 check((await page.locator('#rv-notes').inputValue()) === '', 'discarded text was not saved');
@@ -164,7 +169,7 @@ await page.waitForSelector('.lib-item');
 await page.click('.lib-item a >> text=Pair-programming');
 await page.waitForSelector('[role=tablist]');
 await page.click('#tab-review');
-check((await page.locator('#rv-project').count()) === 0 && (await page.textContent('.review__project')).includes('AI-assisted coding'), 'single-project paper shows the project name, not a picker');
+check((await page.locator('#paper-project').count()) === 0 && (await page.textContent('.review__project')).includes('AI-assisted coding'), 'single-project paper shows the project name, not a picker');
 check((await page.locator('input[name=rv-status]:checked').getAttribute('value')) === 'read', 'seeded review status shown');
 check((await page.locator('#rv-keyFindings').inputValue()) === 'Pair programming still wins.', 'seeded review text shown');
 await page.click('#tab-overview');
