@@ -1,4 +1,4 @@
 /** Deployment settings. OpenAlex and Crossref both ask API users to identify themselves with an email
  *  address (the "polite pool" gives faster, more reliable responses). Set one here before deploying.
  *  It is sent as the `mailto` query parameter. Left blank, the app still works, just without the polite pool. */
-export const CONTACT_EMAIL = '';
+export const CONTACT_EMAIL = 'bubbyroller@gmail.com';
