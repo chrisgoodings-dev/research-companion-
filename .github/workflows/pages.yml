@@ -1,9 +1,8 @@
-name: Test and deploy to GitHub Pages
+name: Deploy to GitHub Pages
 
 on:
   push:
     branches: [main]
-  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -16,36 +15,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm test
-      - run: npm run contrast
-      - name: Install the browser used by the end-to-end tests
-        run: npx playwright-core install --with-deps chromium
-      - name: Browser suites, HTML validation and the whole-app audit
-        run: npm run test:e2e
-
   deploy:
-    # Only the main branch is published, and only if every test passed.
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    needs: test
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - name: Assemble the site (static files only: no tests, docs or tooling)
+      - name: Assemble the site (static files only)
         run: |
           mkdir _site
-          cp -r index.html css js _site/
+          cp index.html paper.html list.html _site/
+          cp -r css js _site/
           touch _site/.nojekyll
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

@@ -123,3 +123,14 @@
 - `npm run design:docx` builds a single Word version (`docs/design/SE-Research-Hub-Design-Documentation.docx`). Its XML and image count were checked, but it has not been opened in Word or rendered, because LibreOffice would not load any file in this container. Open it in Word and check page layout before relying on it.
 - Residual risks are documented honestly in the threat model (shared github.io origin, no frame-ancestors on static hosting, user-owned backups, public contact email).
 - AI use: the diagrams and documents were drafted by the AI assistant from the built code; check them against the app before citing them.
+
+## 2026-10-04: Rebuilt as "Lite" (about 20 hours of scope)
+- The first version was far larger than the brief's 10-hour guide (IndexedDB with five stores, router with lazy loading, two APIs merged, matrix, backup, CSP, 3,300 lines of tests). It is kept on the `full-app-v1-backup` branch.
+- Lite keeps the core idea: search (OpenAlex), read a paper (second API call by ID), save it, and write evidence and interpretation separately against one research question.
+- Three HTML pages, one stylesheet, about 520 lines of JavaScript. No framework, no build step, `localStorage` instead of IndexedDB.
+- Checked in a real browser with recorded API responses: search validation, API query, save, note form, filter, remove, rate-limit, offline and empty states; axe-core WCAG 2.2 AA plus best-practice rules on 3 pages x 3 viewports x 2 colour schemes = 0 violations; no sideways scroll at 320px.
+- Bugs found by those checks: Escape did not close the menu when focus was on the Menu button (listener moved to the header); OpenAlex titles can contain HTML tags (now stripped).
+- Not yet checked: the live OpenAlex API from the deployed site, a screen reader, a real phone.
+
+### AI use (for the AITS declaration)
+- The AI assistant (Claude) wrote the code and tests under my direction. Record here what I reviewed, changed and tested myself.

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Your saved papers, with evidence notes kept apart from your own interpretation.">
+  <title>Reading list | SE Research Hub</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="site-header">
+    <a class="brand" href="index.html">SE Research Hub</a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
+    <nav id="site-nav" class="site-nav" aria-label="Main">
+      <ul>
+        <li><a href="index.html">Search</a></li>
+        <li><a href="list.html" aria-current="page">Reading list</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main id="main" tabindex="-1">
+    <h1>Reading list</h1>
+    <p class="intro">Papers you saved. For each one, record what it reports (evidence) separately from what you think it means (interpretation).</p>
+
+    <form id="question-form" class="card" novalidate>
+      <div class="field">
+        <label for="question">My research question</label>
+        <p class="hint" id="question-hint">The one question this reading is meant to answer.</p>
+        <input type="text" id="question" name="question" maxlength="200" aria-describedby="question-hint">
+      </div>
+      <div><button class="btn" type="submit">Save question</button></div>
+    </form>
+
+    <div class="toolbar">
+      <label for="filter">Show</label>
+      <select id="filter" name="filter">
+        <option value="all">All papers</option>
+        <option value="to-read">To read</option>
+        <option value="reading">Reading</option>
+        <option value="read">Read</option>
+      </select>
+    </div>
+
+    <p id="status" class="status" role="status"></p>
+    <ul id="saved"></ul>
+  </main>
+  <footer class="site-footer">
+    <p>Paper data from <a href="https://openalex.org">OpenAlex</a>. Your reading list is stored only in this browser.</p>
+  </footer>
+  <script type="module" src="js/list-page.js"></script>
+</body>
+</html>

@@ -1,38 +1,53 @@
 # SE Research Hub
 
-A research evidence workspace built for the MSc Web Technologies module (55-709700), Assessment 3.
-Discover papers through scholarly APIs, save them to a project, capture structured evidence
-(kept separate from your own interpretation) and relate it to research questions in an evidence matrix.
+A small web app for finding research papers and keeping notes on what they say.
 
 **Live site:** https://chrisgoodings-dev.github.io/research-companion-/
 
-## Run locally
-```bash
-npm install
-npm start            # http://localhost:8080 (static, no build step)
-npm test             # unit tests (Node test runner)
-npm run test:e2e     # all browser suites, HTML validation and the whole-app audit (a few minutes)
-npm run audit        # 90 page audits: axe-core, keyboard-only pass, text spacing; writes docs/testing/accessibility-audit.md
-npm run validate     # HTML validation of every rendered route; writes docs/testing/html-validation.md
-npm run contrast     # WCAG contrast ratios for the design tokens
-```
-
-## Stack
-Plain HTML, CSS and ES-module JavaScript. No framework and no build step, so it deploys as static files.
-IndexedDB holds research data; localStorage holds the theme. OpenAlex and Crossref provide paper search (set `CONTACT_EMAIL` in `js/config.js`).
+Module: Web Technologies (55-709700). Built with plain HTML, CSS and JavaScript: no framework and no build step.
 
 ## What it does
-Search OpenAlex and Crossref, save papers to projects, review them with structured fields, record evidence (what a paper reports) separately from your own interpretation against research questions, see agreement, conflict and gaps in an evidence matrix, track progress, and back up or export everything. All data stays in your browser.
 
-## Structure
+| Page | File | What you can do |
+|---|---|---|
+| Search | `index.html` | Search the [OpenAlex](https://docs.openalex.org/) API by keyword, with a year filter, a sort order and an open-access option |
+| Paper | `paper.html?id=W...` | Read a paper's details and abstract (a second API call, by ID) and save it with a reading status |
+| Reading list | `list.html` | Filter saved papers, record a research question, and write a note for each paper that keeps **evidence** (what the paper reports) apart from **interpretation** (what you think it means) |
+
+Saved papers are stored in the browser's `localStorage`. Nothing is sent to a server of mine.
+
+## Files
+
 ```
-index.html          app shell (landmarks, nav, live region, menu dialog)
-css/                tokens (theme) → base → layout (mobile-first) → components
-js/                 main, router (hash routes), ui helpers, views
-tests/              unit, e2e (Playwright + axe-core), contrast checker
-docs/               build plan, development log, test screenshots
-docs/design/        wireframes, site map, use cases, data flow, threat model, sequence diagrams (npm run design)
+index.html, paper.html, list.html   the three pages
+css/styles.css                      all styling (mobile-first)
+js/api.js                           OpenAlex calls and abstract rebuilding
+js/storage.js                       reading list in localStorage
+js/forms.js                         validation and error messages
+js/site.js                          menu button and small shared helpers
+js/search-page.js, paper-page.js, list-page.js   one script per page
 ```
 
-## Status
-All twelve stages of `docs/build-plan.md` are complete. History and decisions: `docs/development-log.md`. Test evidence: `docs/testing/`. Deployment: `docs/deployment.md`. Design documentation: `docs/design/README.md`. Material for the written evaluation: `docs/assessment/writeup-evidence.md`.
+## Run it locally
+
+Open the folder with any static web server, for example `python3 -m http.server`, then visit http://localhost:8000. (Opening the files directly with `file://` will not work because the scripts are ES modules.)
+
+## Deploy
+
+Pushing to `main` publishes the site with GitHub Pages (`.github/workflows/pages.yml`).
+
+## Make the submission ZIP
+
+```
+git archive --format=zip -o submission.zip HEAD
+```
+
+## Sources and credits
+
+- Paper data: [OpenAlex](https://openalex.org/), used under its open data licence. The abstract rebuilding in `js/api.js` follows OpenAlex's documentation of its "inverted index" format.
+- Colours checked for contrast with the WCAG 2.2 contrast formula.
+- AI assistance: see the AI transparency declaration submitted with the assessment.
+
+## Possible future work
+
+Pagination controls, tags, export of the reading list, and a second API.

@@ -1,9 +1,0 @@
-{
-  "status": "ok",
-  "message-type": "work-list",
-  "message": {
-    "total-results": 0,
-    "items-per-page": 20,
-    "items": []
-  }
-}

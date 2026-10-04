@@ -1,118 +1,67 @@
 <!doctype html>
-<html lang="en" data-theme="auto">
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-Z+kj3nkOL5mnE87aiJ+56Yu6WZ/pTZta9qOzFp7OEpM='; style-src 'self'; img-src 'self' data:; connect-src 'self' https://api.openalex.org https://api.crossref.org; base-uri 'none'; form-action 'self'; object-src 'none'; frame-src 'none'">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dashboard · SE Research Hub</title>
-  <meta name="description" content="SE Research Hub: discover research papers, capture structured evidence and relate it to your research questions.">
-  <meta name="color-scheme" content="light dark">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2314b8a6'/%3E%3Ctext x='16' y='22' font-family='Arial' font-weight='800' font-size='15' text-anchor='middle' fill='%230d1b1e'%3ESE%3C/text%3E%3C/svg%3E">
-  <link rel="stylesheet" href="css/tokens.css">
-  <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/layout.css">
-  <link rel="stylesheet" href="css/components.css">
-  <link rel="stylesheet" href="css/print.css" media="print">
-  <script>
-    /* Apply a saved theme before first paint to avoid a flash. */
-    try { var t = localStorage.getItem('seh-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
-  </script>
-  <link rel="modulepreload" href="js/main.js">
-  <link rel="modulepreload" href="js/router.js">
-  <link rel="modulepreload" href="js/ui/announcer.js">
-  <link rel="modulepreload" href="js/ui/dom.js">
-  <link rel="modulepreload" href="js/ui/theme.js">
-  <link rel="modulepreload" href="js/ui/focus.js">
-  <link rel="modulepreload" href="js/views/index.js">
-  <link rel="modulepreload" href="js/views/dashboard.js">
-  <link rel="modulepreload" href="js/db/index.js">
-  <link rel="modulepreload" href="js/db/db.js">
-  <link rel="modulepreload" href="js/db/repository.js">
-  <link rel="modulepreload" href="js/validation.js">
-  <link rel="modulepreload" href="js/api/paper.js">
-  <link rel="modulepreload" href="js/ui/download.js">
-  <link rel="modulepreload" href="js/ui/format.js">
-  <script type="module" src="js/main.js"></script>
+  <meta name="description" content="Search scholarly papers with OpenAlex and save them to a reading list.">
+  <title>Search papers | SE Research Hub</title>
+  <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to main content</a>
-
-  <div class="app">
-    <header class="topbar">
-      <a class="brand" href="#/dashboard">
-        <span class="brand__mark" aria-hidden="true">SE</span>
-        <span class="brand__name">Research Hub</span>
-      </a>
-      <button type="button" class="btn btn--ghost theme-toggle" id="theme-toggle" aria-pressed="false">
-        <span class="theme-toggle__label">Dark theme</span>
-      </button>
-    </header>
-
-    <nav class="nav" aria-label="Primary">
-      <ul class="nav__list">
-        <li><a class="nav__link" href="#/dashboard"><svg class="nav__icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M3 3h8v10H3zM13 3h8v6h-8zM13 11h8v10h-8zM3 15h8v6H3z"/></svg><span>Dashboard</span></a></li>
-        <li class="nav__secondary"><a class="nav__link" href="#/projects"><svg class="nav__icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Projects</span></a></li>
-        <li><a class="nav__link" href="#/discover"><svg class="nav__icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M10 3a7 7 0 1 0 4.2 12.6l5.1 5.1 1.4-1.4-5.1-5.1A7 7 0 0 0 10 3zm0 2a5 5 0 1 1 0 10 5 5 0 0 1 0-10z"/></svg><span>Discover</span></a></li>
-        <li><a class="nav__link" href="#/library"><svg class="nav__icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 4h4v16H4zM10 4h4v16h-4zM16.5 4.6l3.9-.9 3.1 15.6-3.9.9z"/></svg><span>Library</span></a></li>
-        <li class="nav__secondary"><a class="nav__link" href="#/evidence"><svg class="nav__icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6zM14 3.5V8h4.5zM9 12h8v1.6H9zm0 4h8v1.6H9z"/></svg><span>Evidence</span></a></li>
-        <li class="nav__secondary"><a class="nav__link" href="#/matrix"><svg class="nav__icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M3 3h18v18H3zm2 2v4h4V5zm6 0v4h4V5zm6 0v4h2V5zM5 11v4h4v-4zm6 0v4h4v-4zm6 0v4h2v-4zM5 17v2h4v-2zm6 0v2h4v-2zm6 0v2h2v-2z"/></svg><span>Matrix</span></a></li>
-        <li class="nav__secondary"><a class="nav__link" href="#/progress"><svg class="nav__icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 20V10h3v10zm6.5 0V4h3v16zM17 20v-7h3v7z"/></svg><span>Progress</span></a></li>
-        <li class="nav__menu-item">
-          <button type="button" class="nav__link nav__menu-btn" id="menu-btn" aria-haspopup="dialog" aria-controls="more-menu">
-            <svg class="nav__icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg><span>Menu</span>
-          </button>
-        </li>
+  <header class="site-header">
+    <a class="brand" href="index.html">SE Research Hub</a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
+    <nav id="site-nav" class="site-nav" aria-label="Main">
+      <ul>
+        <li><a href="index.html" aria-current="page">Search</a></li>
+        <li><a href="list.html">Reading list</a></li>
       </ul>
-      <a class="nav__link nav__footer" href="#/backup"><svg class="nav__icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3v10.2l3.6-3.6L17 11l-5 5-5-5 1.4-1.4 3.6 3.6V3zM5 17h14v4H5z"/></svg><span>Backup &amp; export</span></a>
     </nav>
+  </header>
+  <main id="main" tabindex="-1">
+    <h1>Find research papers</h1>
+    <p class="intro">Search the OpenAlex scholarly database, open a paper to read its abstract, and save it to your reading list.</p>
 
-    <main id="main" class="main" tabindex="-1"></main>
-  </div>
-
-  <dialog id="more-menu" class="sheet" aria-labelledby="more-menu-title">
-    <h2 id="more-menu-title" class="sheet__title">More</h2>
-    <ul class="sheet__list">
-      <li><a class="sheet__link" href="#/projects">Projects</a></li>
-      <li><a class="sheet__link" href="#/evidence">Evidence</a></li>
-      <li><a class="sheet__link" href="#/matrix">Matrix</a></li>
-      <li><a class="sheet__link" href="#/progress">Progress</a></li>
-      <li><a class="sheet__link" href="#/backup">Backup &amp; export</a></li>
-    </ul>
-    <button type="button" class="btn btn--secondary" id="menu-close">Close menu</button>
-  </dialog>
-
-  <dialog id="confirm-dialog" class="sheet" aria-labelledby="confirm-title" aria-describedby="confirm-body">
-    <form method="dialog">
-      <h2 id="confirm-title" class="sheet__title">Are you sure?</h2>
-      <p id="confirm-body">This cannot be undone.</p>
-      <div class="actions">
-        <button type="submit" value="cancel" class="btn btn--secondary">Cancel</button>
-        <button type="submit" value="confirm" class="btn btn--danger" id="confirm-ok">Delete</button>
-      </div>
-    </form>
-  </dialog>
-
-  <dialog id="save-dialog" class="sheet" aria-labelledby="save-title" aria-describedby="save-paper">
-    <form method="dialog" class="form">
-      <h2 id="save-title" class="sheet__title">Save to project</h2>
-      <p id="save-paper" class="save__paper"></p>
+    <form id="search-form" action="index.html" method="get" novalidate>
       <div class="field">
-        <label class="field__label" for="save-project">Project <span class="field__req">(required)</span></label>
-        <p class="field__hint" id="save-project-hint">A paper can be saved to more than one project.</p>
-        <select id="save-project" name="save-project" required aria-describedby="save-project-hint"></select>
+        <label for="q">Keywords</label>
+        <p class="hint" id="q-hint">For example: AI code generation productivity</p>
+        <input type="search" id="q" name="q" required minlength="2" maxlength="200"
+               autocomplete="off" enterkeyhint="search" aria-describedby="q-hint">
       </div>
-      <div class="actions">
-        <button type="submit" value="cancel" class="btn btn--secondary">Cancel</button>
-        <button type="submit" value="save" class="btn btn--primary">Save paper</button>
+
+      <div class="row">
+        <div class="field">
+          <label for="from">Published from (year)</label>
+          <input type="number" id="from" name="from" min="1900" max="2100" step="1"
+                 inputmode="numeric" placeholder="e.g. 2020">
+        </div>
+        <div class="field">
+          <label for="sort">Sort by</label>
+          <select id="sort" name="sort">
+            <option value="relevance">Relevance</option>
+            <option value="newest">Newest first</option>
+            <option value="cited">Most cited</option>
+          </select>
+        </div>
       </div>
+
+      <div class="check">
+        <input type="checkbox" id="oa" name="oa" value="1">
+        <label for="oa">Open access only</label>
+      </div>
+
+      <div><button class="btn" type="submit">Search</button></div>
     </form>
-  </dialog>
 
-  <div id="toasts" class="toasts"></div>
-
-  <!-- Polite live region: route changes and status messages are announced here (WCAG 4.1.3). -->
-  <div id="announcer" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></div>
-
-  <noscript><p class="noscript">SE Research Hub needs JavaScript to run. Please enable it and reload.</p></noscript>
+    <p id="status" class="status" role="status"></p>
+    <ul id="results"></ul>
+    <p><button id="more" class="btn btn-secondary" type="button" hidden>Show more results</button></p>
+  </main>
+  <footer class="site-footer">
+    <p>Paper data from <a href="https://openalex.org">OpenAlex</a>. Your reading list is stored only in this browser.</p>
+  </footer>
+  <script type="module" src="js/search-page.js"></script>
 </body>
 </html>

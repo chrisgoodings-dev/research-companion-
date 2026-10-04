@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Read the details and abstract of a research paper and save it.">
+  <title>Paper | SE Research Hub</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="site-header">
+    <a class="brand" href="index.html">SE Research Hub</a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
+    <nav id="site-nav" class="site-nav" aria-label="Main">
+      <ul>
+        <li><a href="index.html">Search</a></li>
+        <li><a href="list.html">Reading list</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main id="main" tabindex="-1">
+    <p><a href="index.html" class="back">&larr; Back to search</a></p>
+    <p id="status" class="status" role="status">Loading paper&hellip;</p>
+
+    <article id="paper" hidden>
+      <h1 id="paper-title"></h1>
+      <p id="paper-authors"></p>
+      <p id="paper-meta" class="meta"></p>
+      <h2>Abstract</h2>
+      <p id="paper-abstract"></p>
+      <ul id="paper-links" class="links"></ul>
+
+      <form id="save-form" class="card" novalidate>
+        <h2>Save to your reading list</h2>
+        <div class="field">
+          <label for="reading-status">Reading status</label>
+          <select id="reading-status" name="status">
+            <option value="to-read">To read</option>
+            <option value="reading">Reading</option>
+            <option value="read">Read</option>
+          </select>
+        </div>
+        <div><button class="btn" type="submit" id="save-btn">Save paper</button></div>
+      </form>
+    </article>
+  </main>
+  <footer class="site-footer">
+    <p>Paper data from <a href="https://openalex.org">OpenAlex</a>. Your reading list is stored only in this browser.</p>
+  </footer>
+  <script type="module" src="js/paper-page.js"></script>
+</body>
+</html>
